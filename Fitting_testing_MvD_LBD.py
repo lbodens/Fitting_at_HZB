@@ -12,6 +12,7 @@ from tkinter import filedialog
 from tkinter import *
 import glob
 import time
+import math
 
 
 
@@ -118,6 +119,14 @@ def filenamer(Directory,osdirr):
 names = filenamer(Directory,osdirr)   
 """-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
 
+"""------------------------------------Check, if the input is correct or not/catch it if its wrong ------------------------------------------------------------"""
+def correct_input_fkt(Input):                # fkt to check, if the path is correct
+    print("\nThe input:")
+    print(Input)
+    print("seem to be incorrect.\nYou seem to have misspelled the type or it is not included.\nPlease try again: ")
+    return False
+"""-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
+
 
 """-------------------------------------------------------Makes eV the index of the arrays------------------------------------------------------------"""   
 filesread_eV=[]
@@ -146,6 +155,31 @@ def sameenergyrange(filesread,eVrange):
     return (filesread_sameeVCopy,eVrange)
 filesread_sameeV,eVrange = sameenergyrange(filesread,eVrange)    
 """-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
+
+
+"""-------------------------------------------updating the parameters---------------------------------------------"""
+def peak_values_update():
+    for j in range(int(number_of_spectra)):
+
+        for i in range(int(number_of_peaks)):
+            peak_nr = (rows_to_skip + 2) + attribute_nr * (i + int(number_of_peaks) * j)
+
+            for k in range(attribute_nr):
+                para_name = read_lines.loc[peak_nr + k][0]
+                para_name = para_name.replace(":", "")
+                para_value = read_lines.loc[peak_nr + k][1]
+                para_test = read_lines.loc[peak_nr + k][6]
+                if type(para_test) == type(str()):  # first loop to see if its a string to cath the "=" or expr
+                    if para_test == "=":
+                        print(para_name)
+                        pars[para_name].set(value=para_value)
+                    continue
+                if type(para_test) == type(float()):  # if its not a str it might be the NaN
+                    if math.isnan(para_test) == True:
+                        print(para_name)
+                        pars[para_name].set(value=para_value)
+"""-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
+
 
 
 
@@ -235,13 +269,37 @@ def shirley_baseline(x,y,I1,I2):
 #xraw=Data[limit:,0]  #high to low
 #yraw=Data[limit:,1]  #high to low
 
+
+
+read_lines = pd.read_csv("d:\\Profile\\ogd\\Desktop\\PhD\\Python\\fit_result_1.txt", header=None, skiprows=0, delim_whitespace=True)
+rows_to_skip = int(input("If you are using the unchanged list from 'out', please enter the number of rows before (including) [Values]. So that the 'lin_slope' is at position 0\n"))
+
+#creating wanted number and types of peaks
+number_of_spectra = input("please enter the number of spectra you want to fit\n")
+number_of_peaks = input("please enter the number of peaks you want to use for fitting\n")
+select_peak_type = False
+while select_peak_type == False:
+    peak_type = input("please enter the type of peak you are using.\n e.G. Voigt, Gauss, Lorentz")
+    if peak_type == "Voigt" or peak_type == "Gauss" or peak_type == "Lorentz":
+        select_peak_type == True
+        break
+    else:
+        select_peak_type = correct_input_fkt(peak_type)
+
+
+if peak_type == "Voigt":
+   attribute_nr = 6
+if peak_type == "Gauss":
+   attribute_nr = 5
+if peak_type == "Lorenz":
+   attribute_nr = 5
+
 '''------Cut the upper limit of the data------'''
 def find_nearest(array, value):
     array = np.asarray(array)
     idx = (np.abs(array - value)).argmin()
     return idx
 #limit = find_nearest(eVrange,468)
-
 
 
 
@@ -259,6 +317,39 @@ def straightline (x,y):
     Straightline=m*x+c #array of straight line background approximation    
     return (Straightline, I1,I2)
 '''---------------------------------------------------------------------------------'''
+
+
+
+
+"""---------------creating the wanted nr and type of peaks----------------------"""
+Model = []
+for j in range(int(number_of_spectra)):
+    for i in range(int(number_of_peaks)):
+        if peak_type =="Voigt" or peak_type =="voigt":
+            Model.append(VoigtModel(prefix='v'+str(j)+'_'+str(i)+'_'))
+            pars.update(Model[i+int(number_of_peaks)*j].make_params())
+            pars['v'+str(j)+'_'+str(i)+'_amplitude'].set(min=0)
+            mod = mod + Model[i+int(number_of_peaks)*j]
+        if peak_type =="Gauss":
+            Model.append(GaussianModel(prefix='g'+str(j)+'_'+str(i)+'_'))
+            pars.update(Model[i+int(number_of_peaks)*j].make_params())
+            mod = mod + Model[i+int(number_of_peaks)*j]
+        if peak_type =="Lorenz":
+            Model.append(LorentzianModel(prefix='l'+str(j)+'_'+str(i)+'_'))
+            pars.update(Model[i+int(number_of_peaks)*j].make_params())
+            mod = mod + Model[i+int(number_of_peaks)*j]
+"""-------------------------------------------------------------------------------------------"""
+
+
+
+
+#checking for prevoius parameters
+prev_params = input("do you have prevoius parameters?")
+if prev_params == "yes":
+    peak_values_update()
+
+
+
 
 
 def PeakModel (xraw,yraw,Straightline,I1,I2):
