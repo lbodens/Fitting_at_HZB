@@ -157,32 +157,6 @@ filesread_sameeV,eVrange = sameenergyrange(filesread,eVrange)
 """-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
 
 
-"""-------------------------------------------updating the parameters---------------------------------------------"""
-def peak_values_update():
-    for j in range(int(number_of_spectra)):
-
-        for i in range(int(number_of_peaks)):
-            peak_nr = (rows_to_skip + 2) + attribute_nr * (i + int(number_of_peaks) * j)
-
-            for k in range(attribute_nr):
-                para_name = read_lines.loc[peak_nr + k][0]
-                para_name = para_name.replace(":", "")
-                para_value = read_lines.loc[peak_nr + k][1]
-                para_test = read_lines.loc[peak_nr + k][6]
-                if type(para_test) == type(str()):  # first loop to see if its a string to cath the "=" or expr
-                    if para_test == "=":
-                        print(para_name)
-                        pars[para_name].set(value=para_value)
-                    continue
-                if type(para_test) == type(float()):  # if its not a str it might be the NaN
-                    if math.isnan(para_test) == True:
-                        print(para_name)
-                        pars[para_name].set(value=para_value)
-"""-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
-
-
-
-
 """----------------------------------------------------------------------------------------------------------------------------------------"""
 """--------------------------------------------------------XPS peak fitting----------------------------------------------------------------"""
 """----------------------------------------------------------------------------------------------------------------------------------------"""
@@ -215,7 +189,6 @@ from lmfit.models import DoniachModel
 """----------------------------------------------------------------------------------------------------------------------------------------"""
 """------------------------------------------------------Shirley background fit------------------------------------------------------------"""
 """----------------------------------------------------------------------------------------------------------------------------------------"""
-
 def shirley_baseline(x,y,I1,I2):
     ''' Function calculates the Shirley background 
     following Bruckner's approach. The background 
@@ -255,9 +228,36 @@ def shirley_baseline(x,y,I1,I2):
 
     BGND
     return BGND
-
 """----------------------------------------------------------------------------------------------------------------------------------------"""
 
+
+
+"""-------------------------------------------updating the parameters---------------------------------------------"""
+def peak_values_update():
+    read_lines = pd.read_csv("d:\\Profile\\ogd\\Desktop\\PhD\\Python\\fit_result_1.txt", header=None, skiprows=0,
+                             delim_whitespace=True)                         #TODO change path/make it general/take it directly from Out
+    rows_to_skip = int(input(
+        "If you are using the unchanged list from 'out', please enter the number of rows before (including) [Values]. So that the 'lin_slope' is at position 0\n")) #TODO directly searc for [[Variables]] and scip everytin above
+    for j in range(int(number_of_spectra)):
+
+        for i in range(int(number_of_peaks)):
+            peak_nr = (rows_to_skip + 2) + attribute_nr * (i + int(number_of_peaks) * j)
+
+            for k in range(attribute_nr):
+                para_name = read_lines.loc[peak_nr + k][0]
+                para_name = para_name.replace(":", "")
+                para_value = read_lines.loc[peak_nr + k][1]
+                para_test = read_lines.loc[peak_nr + k][6]
+                if type(para_test) == type(str()):  # first loop to see if its a string to cath the "=" or expr
+                    if para_test == "=":
+                        print(para_name)
+                        pars[para_name].set(value=para_value)
+                    continue
+                if type(para_test) == type(float()):  # if its not a str it might be the NaN
+                    if math.isnan(para_test) == True:
+                        print(para_name)
+                        pars[para_name].set(value=para_value)
+"""-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
 
 """-------------------------------------------------------Import the data file------------------------------------------------------------"""
 '''------Only when testing the code!!!------'''
@@ -271,21 +271,18 @@ def shirley_baseline(x,y,I1,I2):
 
 
 
-read_lines = pd.read_csv("d:\\Profile\\ogd\\Desktop\\PhD\\Python\\fit_result_1.txt", header=None, skiprows=0, delim_whitespace=True)
-rows_to_skip = int(input("If you are using the unchanged list from 'out', please enter the number of rows before (including) [Values]. So that the 'lin_slope' is at position 0\n"))
-
+"""-------------------------------inserting peak type--------------------------"""
 #creating wanted number and types of peaks
 number_of_spectra = input("please enter the number of spectra you want to fit\n")
 number_of_peaks = input("please enter the number of peaks you want to use for fitting\n")
 select_peak_type = False
 while select_peak_type == False:
     peak_type = input("please enter the type of peak you are using.\n e.G. Voigt, Gauss, Lorentz")
-    if peak_type == "Voigt" or peak_type == "Gauss" or peak_type == "Lorentz":
+    if peak_type == "Voigt" or peak_type == "Gauss" or peak_type == "Lorentz":              # TODO: Update to new peaks
         select_peak_type == True
         break
     else:
         select_peak_type = correct_input_fkt(peak_type)
-
 
 if peak_type == "Voigt":
    attribute_nr = 6
@@ -293,6 +290,11 @@ if peak_type == "Gauss":
    attribute_nr = 5
 if peak_type == "Lorenz":
    attribute_nr = 5
+#if peak_type =="???"                       TODO
+#    attribute_nr = ???
+"""-----------------------------------------------------------------------------"""
+
+
 
 '''------Cut the upper limit of the data------'''
 def find_nearest(array, value):
@@ -320,7 +322,6 @@ def straightline (x,y):
 
 
 
-
 """---------------creating the wanted nr and type of peaks----------------------"""
 Model = []
 for j in range(int(number_of_spectra)):
@@ -338,11 +339,11 @@ for j in range(int(number_of_spectra)):
             Model.append(LorentzianModel(prefix='l'+str(j)+'_'+str(i)+'_'))
             pars.update(Model[i+int(number_of_peaks)*j].make_params())
             mod = mod + Model[i+int(number_of_peaks)*j]
-"""-------------------------------------------------------------------------------------------"""
+"""--------------------------------------------------------------------------"""
 
 
 
-
+"""---------------Importing previous parameter file ----------------------"""
 #checking for prevoius parameters
 prev_params = input("do you have prevoius parameters?")
 if prev_params == "yes":
@@ -352,7 +353,7 @@ if prev_params == "yes":
     else:
         parameter_file_path = input("enter Parameter_file_path")
         exec(open(parameter_file_path).read())
-
+"""-------------------------------------------------------------------------"""
 
 
 
@@ -372,75 +373,7 @@ def PeakModel (xraw,yraw,Straightline,I1,I2):
         print('PeakMModel Iteration no. '+str(nloop+1))
         yguess = yraw - BGND
         #print('yguess is' +str(yguess))
-        """--------------Define peaks----------------"""
-        ''' Ti4+ '''
-        Voigt1 = VoigtModel(prefix='v1_')
-        pars1 = Voigt1.make_params()
-        Voigt2 = VoigtModel(prefix='v2_')
-        pars2 = Voigt2.make_params()
-        ''' Ti0 '''
-        Voigt3 = VoigtModel(prefix='v3_')
-        pars3 = Voigt3.make_params()    
-        Voigt4 = VoigtModel(prefix='v4_')
-        pars4 = Voigt4.make_params()    
-        ''' Ti2+ '''
-        Voigt5 = VoigtModel(prefix='v5_')
-        pars5 = Voigt5.make_params()    
-        Voigt6 = VoigtModel(prefix='v6_')
-        pars6 = Voigt6.make_params()     
-        ''' Ti3+ '''
-        Voigt7 = VoigtModel(prefix='v7_')
-        pars7 = Voigt7.make_params()    
-        Voigt8 = VoigtModel(prefix='v8_')
-        pars8 = Voigt8.make_params()     
-        
-        sigmin=0.5/3.6013
-        sigmax=2.5/3.6013
-        
-        """Modify the inital guessed parameter values"""
-        ''' Ti4+ '''
-        pars1['v1_amplitude'].set(value=max(yraw), min = 0)      
-        pars1['v1_center'].set(value=459, min = 457, max =462)       
-        pars1['v1_sigma'].set(value=0.2, min=sigmin, max=sigmax)  #FWHM varies between 0.5 and 2.5       
-                
-        pars2['v2_amplitude'].set(value=0.45*pars1['v1_amplitude'], min=0.2*pars1['v1_amplitude'], max=0.5*pars1['v1_amplitude']) #
-        pars2['v2_center'].set(value=5.72+pars1['v1_center'], vary = False)
-        pars2['v2_sigma'].set(value=0.2, min=sigmin, max=sigmax)
 
-                
-        ''' Ti0 '''
-        pars3['v3_amplitude'].set(value=max(yraw)*0.2, vary=True, min = 0)      
-        pars3['v3_center'].set(value=pars1['v1_center']-4.3, vary = False)         
-        pars3['v3_sigma'].set(value=0.2, min=sigmin, max=sigmax)
-        pars4['v4_amplitude'].set(value=(pars2['v2_amplitude']/pars1['v1_amplitude'])*pars3['v3_amplitude'], vary = False)  
-        pars4['v4_center'].set(value=5.72+pars3['v3_center'], vary = False) #min=5.62+pars3['v3_center'], max=5.82+pars3['v3_center']
-        pars4['v4_sigma'].set(value=0.2, min=sigmin, max=sigmax)    
-        
-        
-        ''' Ti2+ '''
-        pars5['v5_amplitude'].set(value=max(yraw)*0.1, vary=True, min = 0)      
-        pars5['v5_center'].set(value=pars1['v1_center']-3, vary = False) #min=pars1['v1_center']-2.9, max=pars1['v1_center']-3.1         
-        pars5['v5_sigma'].set(value=pars1['v1_sigma'], min=sigmin, max=sigmax)
-
-        pars6['v6_amplitude'].set(value=(pars2['v2_amplitude']/pars1['v1_amplitude'])*pars5['v5_amplitude'], vary=False)
-        pars6['v6_center'].set(value=5.72+pars5['v5_center'], vary = False)  #min=5.62+pars5['v5_center'], max=5.82+pars5['v5_center']
-        pars6['v6_sigma'].set(value=pars2['v2_sigma'],min=sigmin, max=sigmax)    
-
-        
-        ''' Ti3+ '''
-        pars7['v7_amplitude'].set(value=max(yraw)*0.1, vary=True, min = 0)      
-        pars7['v7_center'].set(value=pars1['v1_center']-1.8, vary = False) #, min=pars1['v1_center']-1.7, max=pars1['v1_center']-1.9         
-        pars7['v7_sigma'].set(value=pars1['v1_sigma'],min=sigmin, max=sigmax)
-
-        pars8['v8_amplitude'].set(value=(pars2['v2_amplitude']/pars1['v1_amplitude'])*pars7['v7_amplitude'], vary = False) 
-        pars8['v8_center'].set(value=5.72+pars7['v7_center'], vary = False)  #min=5.62+pars7['v7_center'], max=5.82+pars7['v7_center']
-        pars8['v8_sigma'].set(value=pars2['v2_sigma'],min=sigmin, max=sigmax)
-
-        
-        pars = pars1 + pars2 + pars3 + pars4 + pars5 + pars6 + pars7 + pars8
-        mod = Voigt1 + Voigt2 + Voigt3 + Voigt4 + Voigt5 + Voigt6 + Voigt7 + Voigt8
-        #print('Parameters are' +str(pars))
-        #print('Model is '+str(mod))
         """--------------calculate the fit for a straight line background----------------"""
         out = mod.fit(yguess, pars,x=xraw)    
         Fit = out.best_fit
