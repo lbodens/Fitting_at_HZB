@@ -346,8 +346,12 @@ for j in range(int(number_of_spectra)):
 #checking for prevoius parameters
 prev_params = input("do you have prevoius parameters?")
 if prev_params == "yes":
-    peak_values_update()
-
+    parameter_file_direc = input("is it in the same directory?")
+    if parameter_file_direc =="yes":
+        exec(open("./parameter_file.py").read())
+    else:
+        parameter_file_path = input("enter Parameter_file_path")
+        exec(open(parameter_file_path).read())
 
 
 
