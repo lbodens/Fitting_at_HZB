@@ -268,6 +268,24 @@ def peak_values_update():
 
 #xraw=Data[limit:,0]  #high to low
 #yraw=Data[limit:,1]  #high to low
+'''------------end of testing code-------------'''
+def dat_merger_single_file_fkt(file_path, skip_rows, number_of_spectra):
+    df = pd.read_csv(file_path,skiprows=skip_rows, delim_whitespace=True, header=None)
+    df_E = df.iloc[:, 0]
+    df_S = df.iloc[:, 1]
+    for i in range(1, int(number_of_spectra)):
+        df_S_i = df.iloc[:, i + 1]
+        if i == 1:
+            df_E_hold = df_E.append(df_E + 10000 * i, ignore_index=True)
+            df_S_hold = df_S.append(df_S_i, ignore_index=True)
+        else:
+            df_E_hold = df_E_hold.append(df_E + 10000 * i, ignore_index=True)
+            df_S_hold = df_S_hold.append(df_S_i, ignore_index=True)
+    df_total = pd.concat([df_E_hold, df_S_hold], axis=1)
+    return df_total
+
+
+
 
 
 
