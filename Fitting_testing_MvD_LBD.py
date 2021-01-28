@@ -235,7 +235,7 @@ def shirley_baseline(x,y,I1,I2):
 """-------------------------------------------updating the parameters---------------------------------------------"""
 def peak_values_update():
     read_lines = pd.read_csv("d:\\Profile\\ogd\\Desktop\\PhD\\Python\\fit_result_1.txt", header=None, skiprows=0,
-                             delim_whitespace=True)                         #TODO change path/make it general/take it directly from Out
+                             delim_whitespace=True)                         #TODO change path/make it general/take it directly from Out, also set the right skiprows
     rows_to_skip = int(input(
         "If you are using the unchanged list from 'out', please enter the number of rows before (including) [Values]. So that the 'lin_slope' is at position 0\n")) #TODO directly searc for [[Variables]] and scip everytin above
     for j in range(int(number_of_spectra)):
@@ -269,8 +269,33 @@ def peak_values_update():
 #xraw=Data[limit:,0]  #high to low
 #yraw=Data[limit:,1]  #high to low
 '''------------end of testing code-------------'''
+def select_txt_or_dat():
+    txt_or_dat = input("are you using .txt files or .dat files? Please enter 'txt' or 'dat'")
+    if txt_or_dat == "txt":
+        txt = ".txt"
+    if txt_or_dat == "dat":
+        txt = ".dat"
+    return txt
+
+def folder_or_file():
+    print("Do you want to use a single file with all spectra in one or multiple ones (all files in one folder)?")
+    folder_or_file = input("If you want to use a single file please enter 'file'. If you want to use multiple files, please enter 'folder'\n")
+    if folder_or_file =="file":
+        type="file"
+        file_path = input("Please enter the complete file path (incl the filde_name w/o the .txt/dat")
+        txt=select_txt_or_dat()
+        skip_row_nr = input("Please enter number of rows above incl the heaader line ('E S00 S01' or what ever the header is)\n")
+        return file_path, type, txt, skip_row_nr
+    if folder_or_file == "folder":
+        type="folder"
+        folder_path = input("Please enter the folder path to the files")
+        txt=select_txt_or_dat()
+        skip_row_nr = input("Please enter number of rows above incl the headder line ('# Energy Kinetic' or what ever the header is)\n")
+        return folder_path,type,txt, skip_row_nr
+
+
 def dat_merger_single_file_fkt(file_path, skip_rows, number_of_spectra):
-    df = pd.read_csv(file_path,skiprows=skip_rows, delim_whitespace=True, header=None)
+    df = pd.read_csv(file_path+txt,skiprows=skip_rows, delim_whitespace=True, header=None)
     df_E = df.iloc[:, 0]
     df_S = df.iloc[:, 1]
     for i in range(1, int(number_of_spectra)):
@@ -284,14 +309,42 @@ def dat_merger_single_file_fkt(file_path, skip_rows, number_of_spectra):
     df_total = pd.concat([df_E_hold, df_S_hold], axis=1)
     return df_total
 
+def dat_merger_multiple_files_fkt(folder_path,skip_rows,number_of_spectra):
+    txt_files = glob.glob(folder_path+"*"+txt)
+    df = pd.read_csv(txt_files[0],skiprows=skip_rows, delim_whitespace=True, header=None)
+    df_E = df.iloc[:, 0]
+    df_S = df.iloc[:, 1]
+    for i in range(1, int(number_of_spectra)):
+        df = pd.read_csv(txt_files[i],skiprows=skip_rows, delim_whitespace=True, header=None)
+        df_E_i = df.iloc[:, 0]
+        df_S_i = df.iloc[:, 1]
+        if i == 1:
+            df_E_hold = df_E.append(df_E_i + 10000 * i, ignore_index=True)
+            df_S_hold = df_S.append(df_S_i, ignore_index=True)
+            print(df_S_hold)
+        else:
+            df_E_hold = df_E_hold.append(df_E_i + 10000 * i, ignore_index=True)
+            df_S_hold = df_S_hold.append(df_S_i, ignore_index=True)
+            print(df_S_hold)
+    df_total = pd.concat([df_E_hold, df_S_hold], axis=1)
+    return df_total
 
 
 
-
-
-"""-------------------------------inserting peak type--------------------------"""
-#creating wanted number and types of peaks
+"""--------------------general commands like: spectra merging & peak types--------------------------"""
+#taking the wanted spectra and merge them into one long
+folder_or_file=folder_or_file()
+path = folder_or_file[0]
+file_type = folder_or_file[1]
+txt=folder_or_file[2]
+skip_rows = folder_or_file[3]
 number_of_spectra = input("please enter the number of spectra you want to fit\n")
+if file_type == "file":
+    dat = dat_merger_single_file_fkt(file_path, int(skip_rows), number_of_spectra)
+if file_type == "folder":
+    dat = dat_merger_multiple_files_fkt(folder_path,int(skip_rows),number_of_spectra)
+
+#creating wanted number and types of peaks
 number_of_peaks = input("please enter the number of peaks you want to use for fitting\n")
 select_peak_type = False
 while select_peak_type == False:
