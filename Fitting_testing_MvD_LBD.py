@@ -119,15 +119,6 @@ def filenamer(Directory,osdirr):
 names = filenamer(Directory,osdirr)   
 """-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
 
-"""------------------------------------Check, if the input is correct or not/catch it if its wrong ------------------------------------------------------------"""
-def correct_input_fkt(Input):                # fkt to check, if the path is correct
-    print("\nThe input:")
-    print(Input)
-    print("seem to be incorrect.\nYou seem to have misspelled the type or it is not included.\nPlease try again: ")
-    return False
-"""-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
-
-
 """-------------------------------------------------------Makes eV the index of the arrays------------------------------------------------------------"""   
 filesread_eV=[]
 def energyscalebasis(filesread):
@@ -155,6 +146,93 @@ def sameenergyrange(filesread,eVrange):
     return (filesread_sameeVCopy,eVrange)
 filesread_sameeV,eVrange = sameenergyrange(filesread,eVrange)    
 """-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
+
+#------------------^------------------------------------------
+#------------------|------------------------------------------
+#------all of this | is more or less the same as this |-------    <-- so which one using? #TODO
+#-----------------------------------------------------|-------
+#-----------------------------------------------------v-------
+
+"""-------------------------------------------------------Import the data file------------------------------------------------------------"""
+'''------Only when testing the code!!!------'''
+#data=pd.read_csv('C://Python scripts/Ti2pAnatase.csv')
+#data=pd.read_csv('C://Python scripts/Ti2pNo5.csv')
+#data=pd.read_csv('C://Python scripts/Ti2pNo5Spring8.csv')
+#Data=pd.DataFrame(data).to_numpy()
+
+#xraw=Data[limit:,0]  #high to low
+#yraw=Data[limit:,1]  #high to low
+'''------------end of testing code-------------'''
+def select_txt_or_dat():
+    txt_or_dat = input("are you using .txt files or .dat files? Please enter 'txt' or 'dat'")
+    if txt_or_dat == "txt":
+        txt = ".txt"
+    if txt_or_dat == "dat":
+        txt = ".dat"
+    return txt
+
+def folder_or_file():
+    print("Do you want to use a single file with all spectra in one or multiple ones (all files in one folder)?")
+    folder_or_file = input("If you want to use a single file please enter 'file'. If you want to use multiple files, please enter 'folder'\n")
+    if folder_or_file =="file":
+        type="file"
+        file_path = input("Please enter the complete file path (incl the filde_name w/o the .txt/dat")
+        txt=select_txt_or_dat()
+        skip_row_nr = input("Please enter number of rows above incl the heaader line ('E S00 S01' or what ever the header is)\n")
+        return file_path, type, txt, skip_row_nr
+    if folder_or_file == "folder":
+        type="folder"
+        folder_path = input("Please enter the folder path to the files")
+        txt=select_txt_or_dat()
+        skip_row_nr = input("Please enter number of rows above incl the headder line ('# Energy Kinetic' or what ever the header is)\n")
+        return folder_path,type,txt, skip_row_nr
+
+
+def dat_merger_single_file_fkt(file_path, skip_rows, number_of_spectra):
+    df = pd.read_csv(file_path+txt,skiprows=skip_rows, delim_whitespace=True, header=None)
+    df_E = df.iloc[:, 0]
+    df_S = df.iloc[:, 1]
+    for i in range(1, int(number_of_spectra)):
+        df_S_i = df.iloc[:, i + 1]
+        if i == 1:
+            df_E_hold = df_E.append(df_E + 10000 * i, ignore_index=True)
+            df_S_hold = df_S.append(df_S_i, ignore_index=True)
+        else:
+            df_E_hold = df_E_hold.append(df_E + 10000 * i, ignore_index=True)
+            df_S_hold = df_S_hold.append(df_S_i, ignore_index=True)
+    df_total = pd.concat([df_E_hold, df_S_hold], axis=1)
+    return df_total
+
+def dat_merger_multiple_files_fkt(folder_path,skip_rows,number_of_spectra):
+    txt_files = glob.glob(folder_path+"*"+txt)
+    df = pd.read_csv(txt_files[0],skiprows=skip_rows, delim_whitespace=True, header=None)
+    df_E = df.iloc[:, 0]
+    df_S = df.iloc[:, 1]
+    for i in range(1, int(number_of_spectra)):
+        df = pd.read_csv(txt_files[i],skiprows=skip_rows, delim_whitespace=True, header=None)
+        df_E_i = df.iloc[:, 0]
+        df_S_i = df.iloc[:, 1]
+        if i == 1:
+            df_E_hold = df_E.append(df_E_i + 10000 * i, ignore_index=True)
+            df_S_hold = df_S.append(df_S_i, ignore_index=True)
+            print(df_S_hold)
+        else:
+            df_E_hold = df_E_hold.append(df_E_i + 10000 * i, ignore_index=True)
+            df_S_hold = df_S_hold.append(df_S_i, ignore_index=True)
+            print(df_S_hold)
+    df_total = pd.concat([df_E_hold, df_S_hold], axis=1)
+    return df_total
+"""-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
+
+"""------------------------------------Check, if the input is correct or not/catch it if its wrong ------------------------------------------------------------"""
+def correct_input_fkt(Input):                # fkt to check, if the path is correct
+    print("\nThe input:")
+    print(Input)
+    print("seem to be incorrect.\nYou seem to have misspelled the type or it is not included.\nPlease try again: ")
+    return False
+"""-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
+
+
 
 
 """----------------------------------------------------------------------------------------------------------------------------------------"""
@@ -230,108 +308,31 @@ def shirley_baseline(x,y,I1,I2):
     return BGND
 """----------------------------------------------------------------------------------------------------------------------------------------"""
 
+'''------Cut the upper limit of the data------'''
+def find_nearest(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return idx
+#limit = find_nearest(eVrange,468)
 
 
-"""-------------------------------------------updating the parameters---------------------------------------------"""
-def peak_values_update():
-    read_lines = pd.read_csv("d:\\Profile\\ogd\\Desktop\\PhD\\Python\\fit_result_1.txt", header=None, skiprows=0,
-                             delim_whitespace=True)                         #TODO change path/make it general/take it directly from Out, also set the right skiprows
-    rows_to_skip = int(input(
-        "If you are using the unchanged list from 'out', please enter the number of rows before (including) [Values]. So that the 'lin_slope' is at position 0\n")) #TODO directly searc for [[Variables]] and scip everytin above
-    for j in range(int(number_of_spectra)):
-
-        for i in range(int(number_of_peaks)):
-            peak_nr = (rows_to_skip + 2) + attribute_nr * (i + int(number_of_peaks) * j)
-
-            for k in range(attribute_nr):
-                para_name = read_lines.loc[peak_nr + k][0]
-                para_name = para_name.replace(":", "")
-                para_value = read_lines.loc[peak_nr + k][1]
-                para_test = read_lines.loc[peak_nr + k][6]
-                if type(para_test) == type(str()):  # first loop to see if its a string to cath the "=" or expr
-                    if para_test == "=":
-                        print(para_name)
-                        pars[para_name].set(value=para_value)
-                    continue
-                if type(para_test) == type(float()):  # if its not a str it might be the NaN
-                    if math.isnan(para_test) == True:
-                        print(para_name)
-                        pars[para_name].set(value=para_value)
-"""-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
-
-"""-------------------------------------------------------Import the data file------------------------------------------------------------"""
-'''------Only when testing the code!!!------'''
-#data=pd.read_csv('C://Python scripts/Ti2pAnatase.csv')
-#data=pd.read_csv('C://Python scripts/Ti2pNo5.csv')
-#data=pd.read_csv('C://Python scripts/Ti2pNo5Spring8.csv')
-#Data=pd.DataFrame(data).to_numpy()
-
-#xraw=Data[limit:,0]  #high to low
-#yraw=Data[limit:,1]  #high to low
-'''------------end of testing code-------------'''
-def select_txt_or_dat():
-    txt_or_dat = input("are you using .txt files or .dat files? Please enter 'txt' or 'dat'")
-    if txt_or_dat == "txt":
-        txt = ".txt"
-    if txt_or_dat == "dat":
-        txt = ".dat"
-    return txt
-
-def folder_or_file():
-    print("Do you want to use a single file with all spectra in one or multiple ones (all files in one folder)?")
-    folder_or_file = input("If you want to use a single file please enter 'file'. If you want to use multiple files, please enter 'folder'\n")
-    if folder_or_file =="file":
-        type="file"
-        file_path = input("Please enter the complete file path (incl the filde_name w/o the .txt/dat")
-        txt=select_txt_or_dat()
-        skip_row_nr = input("Please enter number of rows above incl the heaader line ('E S00 S01' or what ever the header is)\n")
-        return file_path, type, txt, skip_row_nr
-    if folder_or_file == "folder":
-        type="folder"
-        folder_path = input("Please enter the folder path to the files")
-        txt=select_txt_or_dat()
-        skip_row_nr = input("Please enter number of rows above incl the headder line ('# Energy Kinetic' or what ever the header is)\n")
-        return folder_path,type,txt, skip_row_nr
+"""--------------Create linear offset----------------"""
+def straightline (x,y):
+    #First point
+    I1=np.average(y[0:10])  # dx = 0.05--> average over 1 eV
+    x1=x[0]
+    #End point
+    I2=np.average(y[-10:-1]) # dx = 0.1--> average over 1 eV
+    x2=x[-1]
+    #Straight line approximation
+    m=(I1-I2)/(x1-x2)
+    c=I1-((I1-I2)/(x1-x2))*x1
+    Straightline=m*x+c #array of straight line background approximation
+    return (Straightline, I1,I2)
+'''---------------------------------------------------------------------------------'''
 
 
-def dat_merger_single_file_fkt(file_path, skip_rows, number_of_spectra):
-    df = pd.read_csv(file_path+txt,skiprows=skip_rows, delim_whitespace=True, header=None)
-    df_E = df.iloc[:, 0]
-    df_S = df.iloc[:, 1]
-    for i in range(1, int(number_of_spectra)):
-        df_S_i = df.iloc[:, i + 1]
-        if i == 1:
-            df_E_hold = df_E.append(df_E + 10000 * i, ignore_index=True)
-            df_S_hold = df_S.append(df_S_i, ignore_index=True)
-        else:
-            df_E_hold = df_E_hold.append(df_E + 10000 * i, ignore_index=True)
-            df_S_hold = df_S_hold.append(df_S_i, ignore_index=True)
-    df_total = pd.concat([df_E_hold, df_S_hold], axis=1)
-    return df_total
-
-def dat_merger_multiple_files_fkt(folder_path,skip_rows,number_of_spectra):
-    txt_files = glob.glob(folder_path+"*"+txt)
-    df = pd.read_csv(txt_files[0],skiprows=skip_rows, delim_whitespace=True, header=None)
-    df_E = df.iloc[:, 0]
-    df_S = df.iloc[:, 1]
-    for i in range(1, int(number_of_spectra)):
-        df = pd.read_csv(txt_files[i],skiprows=skip_rows, delim_whitespace=True, header=None)
-        df_E_i = df.iloc[:, 0]
-        df_S_i = df.iloc[:, 1]
-        if i == 1:
-            df_E_hold = df_E.append(df_E_i + 10000 * i, ignore_index=True)
-            df_S_hold = df_S.append(df_S_i, ignore_index=True)
-            print(df_S_hold)
-        else:
-            df_E_hold = df_E_hold.append(df_E_i + 10000 * i, ignore_index=True)
-            df_S_hold = df_S_hold.append(df_S_i, ignore_index=True)
-            print(df_S_hold)
-    df_total = pd.concat([df_E_hold, df_S_hold], axis=1)
-    return df_total
-
-
-
-"""--------------------general commands like: spectra merging & peak types--------------------------"""
+"""--------------------general commands like: spectra merging & peak types--------------------------""" #TODO putting all of this at a good/practical/reasonable place in the code (like where it really starts and then it calls all the functions)
 #taking the wanted spectra and merge them into one long
 folder_or_file=folder_or_file()
 path = folder_or_file[0]
@@ -365,34 +366,6 @@ if peak_type == "Lorenz":
 #    attribute_nr = ???
 """-----------------------------------------------------------------------------"""
 
-
-
-'''------Cut the upper limit of the data------'''
-def find_nearest(array, value):
-    array = np.asarray(array)
-    idx = (np.abs(array - value)).argmin()
-    return idx
-#limit = find_nearest(eVrange,468)
-
-
-
-"""--------------Create linear offset----------------"""
-def straightline (x,y):
-    #First point
-    I1=np.average(y[0:10])  # dx = 0.05--> average over 1 eV
-    x1=x[0]    
-    #End point
-    I2=np.average(y[-10:-1]) # dx = 0.1--> average over 1 eV
-    x2=x[-1]    
-    #Straight line approximation 
-    m=(I1-I2)/(x1-x2)
-    c=I1-((I1-I2)/(x1-x2))*x1  
-    Straightline=m*x+c #array of straight line background approximation    
-    return (Straightline, I1,I2)
-'''---------------------------------------------------------------------------------'''
-
-
-
 """---------------creating the wanted nr and type of peaks----------------------"""
 Model = []
 for j in range(int(number_of_spectra)):
@@ -413,7 +386,6 @@ for j in range(int(number_of_spectra)):
 """--------------------------------------------------------------------------"""
 
 
-
 """---------------Importing previous parameter file ----------------------"""
 #checking for prevoius parameters
 prev_params = input("do you have prevoius parameters?")
@@ -422,10 +394,37 @@ if prev_params == "yes":
     if parameter_file_direc =="yes":
         exec(open("./parameter_file.py").read())
     else:
-        parameter_file_path = input("enter Parameter_file_path")
-        exec(open(parameter_file_path).read())
+        parameter_file_path = input("enter the file path to the parameters (w/o the filename itself!)")
+        exec(open(parameter_file_path+"parameter_file.py").read())
 """-------------------------------------------------------------------------"""
 
+
+"""-------------------------------updating the parameters in the fits--------------------------------------"""
+def peak_values_update():
+    read_lines = pd.read_csv("d:\\Profile\\ogd\\Desktop\\PhD\\Python\\fit_result_1.txt", header=None, skiprows=0,
+                             delim_whitespace=True)                         #TODO change path/make it general/take it directly from Out, also set the right skiprows
+    rows_to_skip = int(input(
+        "If you are using the unchanged list from 'out', please enter the number of rows before (including) [Values]. So that the 'lin_slope' is at position 0\n")) #TODO directly searc for [[Variables]] and scip everytin above
+    for j in range(int(number_of_spectra)):
+
+        for i in range(int(number_of_peaks)):
+            peak_nr = (rows_to_skip + 2) + attribute_nr * (i + int(number_of_peaks) * j)
+
+            for k in range(attribute_nr):
+                para_name = read_lines.loc[peak_nr + k][0]
+                para_name = para_name.replace(":", "")
+                para_value = read_lines.loc[peak_nr + k][1]
+                para_test = read_lines.loc[peak_nr + k][6]
+                if type(para_test) == type(str()):  # first loop to see if its a string to cath the "=" or expr
+                    if para_test == "=":
+                        print(para_name)
+                        pars[para_name].set(value=para_value)
+                    continue
+                if type(para_test) == type(float()):  # if its not a str it might be the NaN
+                    if math.isnan(para_test) == True:
+                        print(para_name)
+                        pars[para_name].set(value=para_value)
+"""------------------------------------------------------------------------------------------------------------------"""
 
 
 def PeakModel (xraw,yraw,Straightline,I1,I2):
