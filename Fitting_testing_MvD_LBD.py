@@ -181,38 +181,48 @@ def folder_or_file():
 
 
 def dat_merger_single_file_fkt(file_path, skip_rows, number_of_spectra):
-    df = pd.read_csv(file_path+txt,skiprows=skip_rows, delim_whitespace=True, header=None)
-    df_E = df.iloc[:, 0]
-    df_S = df.iloc[:, 1]
+    df = pd.read_csv(file_path + txt, skiprows=skip_rows, delim_whitespace=True, header=None)
+    df_E=pd.DataFrame(columns=["E"])
+    df_S=pd.DataFrame(columns=["Spectra"])
+    df_E_hold=pd.DataFrame(columns=["E"])
+    df_S_hold=pd.DataFrame(columns=["Spectra"])
+    df_E["E"] = df.iloc[:, 0]
+    df_S["Spectra"] = df.iloc[:, 1]
     for i in range(1, int(number_of_spectra)):
-        df_S_i = df.iloc[:, i + 1]
+        df_S_i = pd.DataFrame(columns=["Spectra"])
+        df_S_i["Spectra"] = df.iloc[:, i + 1]
         if i == 1:
-            df_E_hold = df_E.append(df_E + 10000 * i, ignore_index=True)
-            df_S_hold = df_S.append(df_S_i, ignore_index=True)
+            df_E_hold["E"] = df_E["E"].append(df_E["E"] + 10000 * i, ignore_index=True)
+            df_S_hold["Spectra"] = df_S["Spectra"].append(df_S_i["Spectra"], ignore_index=True)
         else:
-            df_E_hold = df_E_hold.append(df_E + 10000 * i, ignore_index=True)
-            df_S_hold = df_S_hold.append(df_S_i, ignore_index=True)
-    df_total = pd.concat([df_E_hold, df_S_hold], axis=1)
+            df_E_hold["E"] = df_E_hold["E"].append(df_E["E"] + 10000 * i, ignore_index=True)
+            df_S_hold["Spectra"] = df_S_hold["Spectra"].append(df_S_i["Spectra"], ignore_index=True)
+    df_total = pd.concat([df_E_hold, df_S_hold], axis=1, names=["E", "Spectra"])
     return df_total
 
-def dat_merger_multiple_files_fkt(folder_path,skip_rows,number_of_spectra):
-    txt_files = glob.glob(folder_path+"*"+txt)
-    df = pd.read_csv(txt_files[0],skiprows=skip_rows, delim_whitespace=True, header=None)
-    df_E = df.iloc[:, 0]
-    df_S = df.iloc[:, 1]
+
+def dat_merger_multiple_files_fkt(folder_path, skip_rows, number_of_spectra):
+    txt_files = glob.glob(folder_path + "*" + txt)
+    df = pd.read_csv(txt_files[0], skiprows=skip_rows, delim_whitespace=True, header=None)
+    df_E=pd.DataFrame(columns=["E"])
+    df_S=pd.DataFrame(columns=["Spectra"])
+    df_E_hold=pd.DataFrame(columns=["E"])
+    df_S_hold=pd.DataFrame(columns=["Spectra"])
+    df_E["E"] = df.iloc[:, 0]
+    df_S["Spectra"] = df.iloc[:, 1]
     for i in range(1, int(number_of_spectra)):
-        df = pd.read_csv(txt_files[i],skiprows=skip_rows, delim_whitespace=True, header=None)
-        df_E_i = df.iloc[:, 0]
-        df_S_i = df.iloc[:, 1]
+        df = pd.read_csv(txt_files[i], skiprows=skip_rows, delim_whitespace=True, header=None)
+        df_E_i = pd.DataFrame(columns=["E"])
+        df_E_i["E"] = df.iloc[:, 0]
+        df_S_i = pd.DataFrame(columns=["Spectra"])
+        df_S_i["Spectra"] = df.iloc[:, 1]
         if i == 1:
-            df_E_hold = df_E.append(df_E_i + 10000 * i, ignore_index=True)
-            df_S_hold = df_S.append(df_S_i, ignore_index=True)
-            print(df_S_hold)
+            df_E_hold["E"] = df_E["E"].append(df_E["E"] + 10000 * i, ignore_index=True)
+            df_S_hold["Spectra"] = df_S["Spectra"].append(df_S_i["Spectra"], ignore_index=True)
         else:
-            df_E_hold = df_E_hold.append(df_E_i + 10000 * i, ignore_index=True)
-            df_S_hold = df_S_hold.append(df_S_i, ignore_index=True)
-            print(df_S_hold)
-    df_total = pd.concat([df_E_hold, df_S_hold], axis=1)
+            df_E_hold["E"] = df_E_hold["E"].append(df_E["E"] + 10000 * i, ignore_index=True)
+            df_S_hold["Spectra"] = df_S_hold["Spectra"].append(df_S_i["Spectra"], ignore_index=True)
+    df_total = pd.concat([df_E_hold, df_S_hold], axis=1, names=["E", "Spectra"])
     return df_total
 """-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
 
@@ -337,12 +347,24 @@ if file_type == "file":
 if file_type == "folder":
     dat = dat_merger_multiple_files_fkt(folder_path,int(skip_rows),number_of_spectra)
 
+# creating the vars for I_low & I_high and other boundaries
+ymin = 156.9            # TODO change the ymin and x calculations
+ymax = 170
+if ymin > ymax:
+    y_holder = ymin
+    ymin = ymax
+    ymax = y_holder
+xmin = 1191.75
+xmax = 1206.75
+xraw=dat["E"].index.to_numpy()
+
 #plotting the first spectra to get better overview
 fig, axes = plt.subplots()
-axes.plot(dat.iloc[:, 0], dat.iloc[:, 1], 'b')
+axes.plot(dat["E"], dat["Spectra"], 'b')
 plt.xlim([xmin, xmax])
 print("now a plot of the 1st spectra is shown, that you can quickly look if you want to change some pre set parameters. Close it to continue")
 plt.show()
+plt.colse()
 
 #creating wanted number and types of peaks
 number_of_peaks = input("please enter the number of peaks you want to use for fitting\n")
