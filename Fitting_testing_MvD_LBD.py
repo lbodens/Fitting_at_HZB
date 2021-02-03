@@ -337,6 +337,13 @@ if file_type == "file":
 if file_type == "folder":
     dat = dat_merger_multiple_files_fkt(folder_path,int(skip_rows),number_of_spectra)
 
+#plotting the first spectra to get better overview
+fig, axes = plt.subplots()
+axes.plot(dat.iloc[:, 0], dat.iloc[:, 1], 'b')
+plt.xlim([xmin, xmax])
+print("now a plot of the 1st spectra is shown, that you can quickly look if you want to change some pre set parameters. Close it to continue")
+plt.show()
+
 #creating wanted number and types of peaks
 number_of_peaks = input("please enter the number of peaks you want to use for fitting\n")
 select_peak_type = False
