@@ -356,7 +356,7 @@ if ymin > ymax:
     ymax = y_holder
 xmin = 1191.75
 xmax = 1206.75
-xraw=dat["E"].index.to_numpy()
+xraw=dat["E"].to_numpy()
 
 #plotting the first spectra to get better overview
 fig, axes = plt.subplots()
