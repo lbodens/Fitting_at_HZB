@@ -28,48 +28,50 @@
 #																													#
 #####################################################################################################################	
 
-from Fitting_test_2 import pars, number_of_spectra
-center_peak=[]
-for i in range(int(number_of_spectra)):
-	center_peak[i] = i*10000
 
-pars['v0_0_amplitude'].set(value=50000,min=0)
-pars['v0_0_center'].set(value=854.4, min=853, max=856)
-pars['v0_0_sigma'].set(value=0.74, min=0, max=5)
-pars['v0_0_gamma'].set(value=0.000092, min=0, max=5)
+def parameter_file(pars, number_of_spectra):
+	for i in range(int(number_of_spectra)):
+		pars.add('center_peak_'+str(i),value = i*10000, vary = False)
 
-pars.add('peak_1_height_multi',value = 0.2985, vary = False)
-pars.add('peak_1_center_split',value = 17.27, vary = False)
-pars['v0_1_amplitude'].set(expr="v0_0_amplitude*peak_1_height_multi", vary = False)
-pars['v0_1_center'].set(expr="v0_0_center+peak_1_center_split", vary = False)
-pars['v0_1_sigma'].set(value=0.985, min=0, max=5)
-pars['v0_1_gamma'].set(value=0.00006, min=0, max=5)
+	pars['v0_0_amplitude'].set(value=50000,min=0)
+	pars['v0_0_center'].set(value=854.4, min=853, max=856)
+	pars['v0_0_sigma'].set(value=0.74, min=0, max=5)
+	pars['v0_0_gamma'].set(value=0.000092, min=0, max=5)
+	
+	pars.add('peak_1_height_multi',value = 0.2985, vary = False)
+	pars.add('peak_1_center_split',value = 17.27, vary = False)
+	pars['v0_1_amplitude'].set(expr="v0_0_amplitude*peak_1_height_multi", vary = False)
+	pars['v0_1_center'].set(expr="v0_0_center+peak_1_center_split", vary = False)
+	pars['v0_1_sigma'].set(value=0.985, min=0, max=5)
+	pars['v0_1_gamma'].set(value=0.00006, min=0, max=5)
+	
+	pars.add('peak_2_height_multi',value = 1.415, vary = False)
+	pars.add('peak_2_center_split',value = 1.6711, vary = False)
+	pars['v0_2_amplitude'].set(expr="v0_0_amplitude*peak_2_height_multi", vary= False)
+	pars['v0_2_center'].set(expr="v0_0_center+peak_2_center_split", vary = False)
+	pars['v0_2_sigma'].set(value=1.91, min=0, max=5)
+	pars['v0_2_gamma'].set(value=0.16, min=0, max=5)
+	#...
+	#...
+	#...
+	
+	pars['v1_0_amplitude'].set(value=260,min=0)
+	pars['v1_0_center'].set(expr="v0_0_center+center_peak_1", vary = False)
+	pars['v1_0_sigma'].set(expr="v1_0_sigma", vary = False)
+	pars['v1_0_gamma'].set(expr="v1_0_gamma", vary = False)
+	
+	pars['v1_1_amplitude'].set(value=180, vary = False)
+	pars['v1_1_center'].set(expr="v0_0_center+center_peak_1", vary = False)
+	pars['v1_1_sigma'].set(expr="v0_1_sigma", min=0, max=5)
+	pars['v1_1_gamma'].set(expr="v0_1_gamma", min=0, max=5)
+	
+	pars['v1_2_amplitude'].set(value=80, vary= False)
+	pars['v1_2_center'].set(expr="v0_0_center+center_peak_1", vary = False)
+	pars['v1_2_sigma'].set(value=1.91, min=0, max=5)
+	pars['v1_2_gamma'].set(value=0.16, min=0, max=5)
+	# ...
+	# ...
+	# ...
+	# ...
 
-pars.add('peak_2_height_multi',value = 1.415, vary = False)
-pars.add('peak_2_center_split',value = 1.6711, vary = False)
-pars['v0_2_amplitude'].set(expr="v0_0_amplitude*peak_2_height_multi", vary= False)
-pars['v0_2_center'].set(expr="v0_0_center+peak_2_center_split", vary = False)
-pars['v0_2_sigma'].set(value=1.91, min=0, max=5)
-pars['v0_2_gamma'].set(value=0.16, min=0, max=5)
-#...
-#...
-#...
-
-pars['v1_0_amplitude'].set(value=50000,min=0)
-pars['v1_0_center'].set(value=v0_0_center+center_peak_1, vary = False)
-pars['v1_0_sigma'].set(value=v1_0_sigma, vary = False)
-pars['v1_0_gamma'].set(value=v1_0_gamma, vary = False)
-
-pars['v1_1_amplitude'].set(value=1234, vary = False)
-pars['v1_1_center'].set(value=v0_0_center+center_peak[1], vary = False)
-pars['v1_1_sigma'].set(value=0.985, min=0, max=5)
-pars['v1_1_gamma'].set(value=0.00006, min=0, max=5)
-
-pars['v1_2_amplitude'].set(value=2345, vary= False)
-pars['v1_2_center'].set(value=v0_0_center+center_peak[1], vary = False)
-pars['v1_2_sigma'].set(value=1.91, min=0, max=5)
-pars['v1_2_gamma'].set(value=0.16, min=0, max=5)
-# ...
-# ...
-# ...
-# ...
+	return pars

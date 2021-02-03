@@ -154,15 +154,7 @@ filesread_sameeV,eVrange = sameenergyrange(filesread,eVrange)
 #-----------------------------------------------------v-------
 
 """-------------------------------------------------------Import the data file------------------------------------------------------------"""
-'''------Only when testing the code!!!------'''
-#data=pd.read_csv('C://Python scripts/Ti2pAnatase.csv')
-#data=pd.read_csv('C://Python scripts/Ti2pNo5.csv')
-#data=pd.read_csv('C://Python scripts/Ti2pNo5Spring8.csv')
-#Data=pd.DataFrame(data).to_numpy()
 
-#xraw=Data[limit:,0]  #high to low
-#yraw=Data[limit:,1]  #high to low
-'''------------end of testing code-------------'''
 def select_txt_or_dat():
     txt_or_dat = input("are you using .txt files or .dat files? Please enter 'txt' or 'dat'")
     if txt_or_dat == "txt":
@@ -368,6 +360,7 @@ if peak_type == "Lorenz":
 
 """---------------creating the wanted nr and type of peaks----------------------"""
 Model = []
+pars = Parameters()
 for j in range(int(number_of_spectra)):
     for i in range(int(number_of_peaks)):
         if peak_type =="Voigt" or peak_type =="voigt":
@@ -387,46 +380,99 @@ for j in range(int(number_of_spectra)):
 
 
 """---------------Importing previous parameter file ----------------------"""
-#checking for prevoius parameters
+# checking for prevoius parameters
 prev_params = input("do you have prevoius parameters?")
 if prev_params == "yes":
     parameter_file_direc = input("is it in the same directory?")
-    if parameter_file_direc =="yes":
-        exec(open("./parameter_file.py").read())
+    if parameter_file_direc == "yes":
+        from parameter_file import *
+        parameter_file(pars, number_of_spectra)
     else:
-        parameter_file_path = input("enter the file path to the parameters (w/o the filename itself!)")
-        exec(open(parameter_file_path+"parameter_file.py").read())
+        import sys
+        parameter_file_path = input(
+            "enter the file path to the parameters (w/o the filename itself but with the \ at the end!)")
+        sys.path.insert(1, parameter_file_path)
+        from parameter_file import *
+        parameter_file(pars, number_of_spectra)
 """-------------------------------------------------------------------------"""
 
 
-"""-------------------------------updating the parameters in the fits--------------------------------------"""
-def peak_values_update():
-    read_lines = pd.read_csv("d:\\Profile\\ogd\\Desktop\\PhD\\Python\\fit_result_1.txt", header=None, skiprows=0,
-                             delim_whitespace=True)                         #TODO change path/make it general/take it directly from Out, also set the right skiprows
-    rows_to_skip = int(input(
-        "If you are using the unchanged list from 'out', please enter the number of rows before (including) [Values]. So that the 'lin_slope' is at position 0\n")) #TODO directly searc for [[Variables]] and scip everytin above
-    for j in range(int(number_of_spectra)):
+"""------------------fkt to show spectra with init peaks------------------------------------------"""
+def peak_plot(x):
+    fig, axes = plt.subplots()
+    axes.plot(x, y, 'b')
+    axes.plot(x, init, 'k--', label='initial fit')
 
-        for i in range(int(number_of_peaks)):
-            peak_nr = (rows_to_skip + 2) + attribute_nr * (i + int(number_of_peaks) * j)
+    comps = init.eval_components(x=x)
+    for i in range
+    axes[1].plot(x, y, 'b')
+    # axes[1].plot(x, comps['const_'], 'k-', label='const component 1')
+    axes[1].plot(x, comps['v0_'], 'g--', label='voigt component 1')
+    axes[1].plot(x, comps['v1_'], 'm--', label='voigt component 2')
+    axes[1].plot(x, comps['v2_'], 'r--', label='voigt component 3')
+    axes[1].plot(x, comps['step_0_'], 'g-', label='voigt component 1')
+    axes[1].plot(x, comps['step_1_'], 'm-', label='voigt component 2')
+    axes[1].plot(x, comps['step_2_'], 'r-', label='voigt component 3')
+    axes[1].plot(x, comps['v3_'], 'b--', label='voigt component 1')
+    axes[1].plot(x, comps['v4_'], 'c--', label='voigt component 2')
+    axes[1].plot(x, comps['v5_'], 'y--', label='voigt component 3')
+    axes[1].plot(x, comps['step_3_'], 'b-', label='voigt component 1')
+    axes[1].plot(x, comps['step_4_'], 'c-', label='voigt component 2')
+    axes[1].plot(x, comps['step_5_'], 'y-', label='voigt component 3')
+    axes[1].plot(x, comps['v6_'], 'g.', label='voigt component 1')
+    axes[1].plot(x, comps['v7_'], 'm.', label='voigt component 2')
+    axes[1].plot(x, comps['v8_'], 'r.', label='voigt component 3')
+    axes[1].plot(x, comps['step_6_'], 'g:', label='voigt component 1')
+    axes[1].plot(x, comps['step_7_'], 'm:', label='voigt component 2')
+    axes[1].plot(x, comps['step_8_'], 'r:', label='voigt component 3')
+    axes[1].legend(loc='best')
 
-            for k in range(attribute_nr):
-                para_name = read_lines.loc[peak_nr + k][0]
-                para_name = para_name.replace(":", "")
-                para_value = read_lines.loc[peak_nr + k][1]
-                para_test = read_lines.loc[peak_nr + k][6]
-                if type(para_test) == type(str()):  # first loop to see if its a string to cath the "=" or expr
-                    if para_test == "=":
-                        print(para_name)
-                        pars[para_name].set(value=para_value)
-                    continue
-                if type(para_test) == type(float()):  # if its not a str it might be the NaN
-                    if math.isnan(para_test) == True:
-                        print(para_name)
-                        pars[para_name].set(value=para_value)
-"""------------------------------------------------------------------------------------------------------------------"""
+    plt.show()
 
 
+    fig, ((ax1, ax2, ax3, ax4,), (ax5, ax6, ax7, ax8)) = plt.subplots(2, 4)  # figsize = (height, width)
+    fig.suptitle('Fitting steps', fontsize=14, fontname='Arial')
+
+    axes = [ax1, ax2, ax3, ax4, ax5, ax6, ax7]
+    Peaklabel = ['Ti4+', 'Ti4+', 'Ti0', 'Ti0', 'Ti2+', 'Ti2+', 'Ti3+', 'Ti3+']
+    Colour = ['g--', 'g--', 'm--', 'm--', 'c--', 'c--', 'b--', 'b--']
+
+    for j in range(8):
+        Peakstring = 'v' + str(j + 1) + '_'
+        peaklabel = Peaklabel[j]
+        colour = Colour[j]
+        for i in range(len(Spectra)):
+            axes[i].set_xlim(max(xraw), min(xraw))
+            axes[i].set_ylim(min(Spectra[i]) - 1, (np.max(Spectra[i]) * 1.1))
+            axes[i].set_xlabel("Binding Energy (eV)", fontsize=6, fontname='Arial')
+            axes[i].set_ylabel("Intensity (C/s)", fontsize=6, fontname='Arial')
+            axes[i].set_title(names[i], fontsize=8)
+
+            axes[i].plot(xraw, Spectra[i], 'bo', label='Raw data', markersize=3)
+            axes[i].plot(xraw, BGND[i], 'lime', linestyle='dashed', label='BGND fit', linewidth=2.0)
+            axes[i].plot(xraw, Fit[i] + BGND[i], 'r-', label='Best fit', linewidth=2.0)
+            axes[i].plot(xraw, Peaks[i][Peakstring] + BGND[i], colour, label=peaklabel, linewidth=2.0)
+
+    axes[3].legend(fontsize=5, bbox_to_anchor=(1.05, 1), loc='upper left', frameon=False)
+
+    plt.show()
+
+def choose_spectra_to_plot():
+    spectra_to_plot = int(input("please enter the spectra which you want to be shown"))
+    return spectra_to_plot
+
+def check_if_peak_inport_is_good():
+    check_shown_peak_input = input("Are these init parameters good enough? please enter 'yes'/'y' or 'no'/'n':")
+    if check_shown_peak_input =="yes" or check_shown_peak_input == "y":
+        check_shown_peak_input = True
+        return check_shown_peak_input
+    else:
+        check_shown_peak_input = False
+        return check_shown_peak_input
+
+"""-------------------------------------------------------------------------"""
+
+"""--------------------------------------actual fitting fkt------------------------------------------------"""
 def PeakModel (xraw,yraw,Straightline,I1,I2):
     
     initialtime=time.time()
@@ -480,7 +526,35 @@ def PeakModel (xraw,yraw,Straightline,I1,I2):
     report=out.fit_report
     #print(out.fit_report(min_correl=0.5))
     return (Fit, BGND, Peaks, Values, Residuals) 
+"""------------------------------------------------------------------------------------------------------------------"""
 
+
+"""-------------------------------updating the parameters in the fits--------------------------------------"""
+def peak_values_update():
+    read_lines = pd.read_csv("d:\\Profile\\ogd\\Desktop\\PhD\\Python\\fit_result_1.txt", header=None, skiprows=0,
+                             delim_whitespace=True)                         #TODO change path/make it general/take it directly from Out, also set the right skiprows
+    rows_to_skip = int(input(
+        "If you are using the unchanged list from 'out', please enter the number of rows before (including) [Values]. So that the 'lin_slope' is at position 0\n")) #TODO directly searc for [[Variables]] and scip everytin above
+    for j in range(int(number_of_spectra)):
+
+        for i in range(int(number_of_peaks)):
+            peak_nr = (rows_to_skip + 2) + attribute_nr * (i + int(number_of_peaks) * j)
+
+            for k in range(attribute_nr):
+                para_name = read_lines.loc[peak_nr + k][0]
+                para_name = para_name.replace(":", "")
+                para_value = read_lines.loc[peak_nr + k][1]
+                para_test = read_lines.loc[peak_nr + k][6]
+                if type(para_test) == type(str()):  # first loop to see if its a string to cath the "=" or expr
+                    if para_test == "=":
+                        print(para_name)
+                        pars[para_name].set(value=para_value)
+                    continue
+                if type(para_test) == type(float()):  # if its not a str it might be the NaN
+                    if math.isnan(para_test) == True:
+                        print(para_name)
+                        pars[para_name].set(value=para_value)
+"""------------------------------------------------------------------------------------------------------------------"""
 
 
 '''-----------------------------File looper------------------------------------------'''
