@@ -308,6 +308,22 @@ def shirley_baseline(x,y,I1,I2):
 
     BGND
     return BGND
+
+
+def shirley_BG_fkt(i):#,I_low_i,I_high_i):
+    I_low_i = I_low[i]                      # take the ith element of the low list
+    I_high_i = I_high[i]
+    voigt_i = Model[i]
+    voigt_fkt = voigt_i.eval(pars, x=x)     #change the voigtModel into actual numbers
+    voigt_sum = np.sum(voigt_i.eval(pars, x=x))     # get the total area of the peak
+    shirley_BG=[]
+    for idx in range(len(y)):
+        S_BG = I_low_i + (I_high_i - I_low_i) * (np.sum(voigt_fkt[idx:len(y)])) / (voigt_sum)
+        shirley_BG.append(S_BG)
+
+    return shirley_BG
+
+
 """----------------------------------------------------------------------------------------------------------------------------------------"""
 
 '''------Cut the upper limit of the data------'''
@@ -358,6 +374,16 @@ xmin = 1191.75
 xmax = 1206.75
 xraw=dat["E"].to_numpy()
 
+I_low = [0]*number_of_spectra*number_of_peaks
+I_high = [0]*number_of_spectra*number_of_peaks
+I_low[0] = ymin
+I_high[0]= (ymax-ymin)/int(number_of_peaks)+I_low[0]
+for i in range(1,int(number_of_peaks*number_of_spectra)):
+    I_low[i] = I_high[i-1]
+    I_high[i]= (ymax-ymin)/int(number_of_peaks)+I_low[i]
+
+
+
 #plotting the first spectra to get better overview
 fig, axes = plt.subplots()
 axes.plot(dat["E"], dat["Spectra"], 'b')
@@ -371,7 +397,19 @@ number_of_peaks = input("please enter the number of peaks you want to use for fi
 select_peak_type = False
 while select_peak_type == False:
     peak_type = input("please enter the type of peak you are using.\n e.G. Voigt, Gauss, Lorentz")
-    if peak_type == "Voigt" or peak_type == "Gauss" or peak_type == "Lorentz":              # TODO: Update to new peaks
+    if peak_type == "Voigt"  or peak_type == "Gauss" or peak_type == "Lorentz":              # TODO: Update to new peaks
+        select_peak_type == True
+        break
+    if peak_type == "voigt":
+        peak_type == "Voigt"
+        select_peak_type == True
+        break
+    if peak_type == "gauss":
+        peak_type == "Gauss"
+        select_peak_type == True
+        break
+    if peak_type == "lorentz":
+        peak_type == "Lorentz"
         select_peak_type == True
         break
     else:
@@ -381,7 +419,7 @@ if peak_type == "Voigt":
    attribute_nr = 6
 if peak_type == "Gauss":
    attribute_nr = 5
-if peak_type == "Lorenz":
+if peak_type == "Lorentz":
    attribute_nr = 5
 #if peak_type =="???"                       TODO
 #    attribute_nr = ???
@@ -401,7 +439,7 @@ for j in range(int(number_of_spectra)):
             Model.append(GaussianModel(prefix='g'+str(j)+'_'+str(i)+'_'))
             pars.update(Model[i+int(number_of_peaks)*j].make_params())
             mod = mod + Model[i+int(number_of_peaks)*j]
-        if peak_type =="Lorenz":
+        if peak_type =="Lorentz":
             Model.append(LorentzianModel(prefix='l'+str(j)+'_'+str(i)+'_'))
             pars.update(Model[i+int(number_of_peaks)*j].make_params())
             mod = mod + Model[i+int(number_of_peaks)*j]
@@ -411,9 +449,9 @@ for j in range(int(number_of_spectra)):
 """---------------Importing previous parameter file ----------------------"""
 # checking for prevoius parameters
 prev_params = input("do you have prevoius parameters?")
-if prev_params == "yes":
+if prev_params == "yes" or prev_params == "y":
     parameter_file_direc = input("is it in the same directory?")
-    if parameter_file_direc == "yes":
+    if parameter_file_direc == "yes" or parameter_file_direc == "y":
         from parameter_file import *
         parameter_file(pars, number_of_spectra)
     else:
@@ -427,81 +465,111 @@ if prev_params == "yes":
 
 
 """------------------fkt to show spectra with init peaks------------------------------------------"""
-def peak_plot(x):
-    fig, axes = plt.subplots()
-    axes.plot(x, y, 'b')
-    axes.plot(x, init, 'k--', label='initial fit')
-
-    comps = init.eval_components(x=x)
-    for i in range
-    axes[1].plot(x, y, 'b')
-    # axes[1].plot(x, comps['const_'], 'k-', label='const component 1')
-    axes[1].plot(x, comps['v0_'], 'g--', label='voigt component 1')
-    axes[1].plot(x, comps['v1_'], 'm--', label='voigt component 2')
-    axes[1].plot(x, comps['v2_'], 'r--', label='voigt component 3')
-    axes[1].plot(x, comps['step_0_'], 'g-', label='voigt component 1')
-    axes[1].plot(x, comps['step_1_'], 'm-', label='voigt component 2')
-    axes[1].plot(x, comps['step_2_'], 'r-', label='voigt component 3')
-    axes[1].plot(x, comps['v3_'], 'b--', label='voigt component 1')
-    axes[1].plot(x, comps['v4_'], 'c--', label='voigt component 2')
-    axes[1].plot(x, comps['v5_'], 'y--', label='voigt component 3')
-    axes[1].plot(x, comps['step_3_'], 'b-', label='voigt component 1')
-    axes[1].plot(x, comps['step_4_'], 'c-', label='voigt component 2')
-    axes[1].plot(x, comps['step_5_'], 'y-', label='voigt component 3')
-    axes[1].plot(x, comps['v6_'], 'g.', label='voigt component 1')
-    axes[1].plot(x, comps['v7_'], 'm.', label='voigt component 2')
-    axes[1].plot(x, comps['v8_'], 'r.', label='voigt component 3')
-    axes[1].plot(x, comps['step_6_'], 'g:', label='voigt component 1')
-    axes[1].plot(x, comps['step_7_'], 'm:', label='voigt component 2')
-    axes[1].plot(x, comps['step_8_'], 'r:', label='voigt component 3')
-    axes[1].legend(loc='best')
-
-    plt.show()
-
-
-    fig, ((ax1, ax2, ax3, ax4,), (ax5, ax6, ax7, ax8)) = plt.subplots(2, 4)  # figsize = (height, width)
-    fig.suptitle('Fitting steps', fontsize=14, fontname='Arial')
-
-    axes = [ax1, ax2, ax3, ax4, ax5, ax6, ax7]
-    Peaklabel = ['Ti4+', 'Ti4+', 'Ti0', 'Ti0', 'Ti2+', 'Ti2+', 'Ti3+', 'Ti3+']
-    Colour = ['g--', 'g--', 'm--', 'm--', 'c--', 'c--', 'b--', 'b--']
-
-    for j in range(8):
-        Peakstring = 'v' + str(j + 1) + '_'
-        peaklabel = Peaklabel[j]
-        colour = Colour[j]
-        for i in range(len(Spectra)):
-            axes[i].set_xlim(max(xraw), min(xraw))
-            axes[i].set_ylim(min(Spectra[i]) - 1, (np.max(Spectra[i]) * 1.1))
-            axes[i].set_xlabel("Binding Energy (eV)", fontsize=6, fontname='Arial')
-            axes[i].set_ylabel("Intensity (C/s)", fontsize=6, fontname='Arial')
-            axes[i].set_title(names[i], fontsize=8)
-
-            axes[i].plot(xraw, Spectra[i], 'bo', label='Raw data', markersize=3)
-            axes[i].plot(xraw, BGND[i], 'lime', linestyle='dashed', label='BGND fit', linewidth=2.0)
-            axes[i].plot(xraw, Fit[i] + BGND[i], 'r-', label='Best fit', linewidth=2.0)
-            axes[i].plot(xraw, Peaks[i][Peakstring] + BGND[i], colour, label=peaklabel, linewidth=2.0)
-
-    axes[3].legend(fontsize=5, bbox_to_anchor=(1.05, 1), loc='upper left', frameon=False)
-
-    plt.show()
-
 def choose_spectra_to_plot():
     spectra_to_plot = int(input("please enter the spectra which you want to be shown"))
     return spectra_to_plot
 
+
 def check_if_peak_inport_is_good():
     check_shown_peak_input = input("Are these init parameters good enough? please enter 'yes'/'y' or 'no'/'n':")
-    if check_shown_peak_input =="yes" or check_shown_peak_input == "y":
+    if check_shown_peak_input == "yes" or check_shown_peak_input == "y":
         check_shown_peak_input = True
         return check_shown_peak_input
     else:
         check_shown_peak_input = False
         return check_shown_peak_input
 
+
+
+def plotting(spectra_to_plot,number_of_peaks):
+    params_input(1,pars,number_of_spectra)
+    print(pars)
+    init = mod.eval(pars, x=xraw)
+    fig, axes = plt.subplots()
+    x = dat["E"].to_numpy()
+    yraw = dat["Spectra"].to_numpy()
+    axes.plot(x, yraw, 'b')
+    axes.plot(x, init, 'k--', label='initial fit')
+    plt.xlim([xmin + (int(spectra_to_plot) - 1) * 10000, xmax + (int(spectra_to_plot) - 1) * 10000])
+#    comps = init.eval_components(x=x)
+#    for i in range(int(number_of_peaks)):
+#        axes.plot(x, comps['lin_'], 'k-', label='const component')
+#        axes.plot(x, comps['v%s_%s'%(spectra_to_plot-1,number_of_peaks)], 'g--', label='voigt component 1')
+#        axes.legend(loc='best')
+    plt.show()
+
+
+def plot_checking():
+    spectra_to_plot_bool = False
+    are_pre_params_good_bool = False
+    spectra_to_plot = choose_spectra_to_plot()
+    while spectra_to_plot_bool == False and are_pre_params_good_bool == False:
+ #       plotting(spectra_to_plot, number_of_peaks)
+ #       plt.close()
+        while are_pre_params_good_bool == False:
+            params_input(1,pars,number_of_spectra)
+            print(pars)
+            init = mod.eval(pars, x=xraw)
+            plotting(spectra_to_plot, number_of_peaks)
+            are_pre_params_good_bool = check_if_peak_inport_is_good()
+            if are_pre_params_good_bool == True:
+                plt.close()
+                continue
+            if are_pre_params_good_bool == False:
+                plt.close()
+                print("Please change the paramter to the desired one")
+                continue
+        while spectra_to_plot_bool == False:
+            other_spectra_check = input("do you want to check other spectra as well?")
+            if other_spectra_check == "yes" or other_spectra_check == "y":
+                spectra_to_plot = choose_spectra_to_plot()
+                spectra_to_plot_bool = False
+                are_pre_params_good_bool = False
+                break
+            if other_spectra_check == "no" or other_spectra_check == "n":
+                spectra_to_plot_bool = True
+                continue
+
+plot_checking()
 """-------------------------------------------------------------------------"""
 
 """--------------------------------------actual fitting fkt------------------------------------------------"""
+
+#here the shirley calc for each peac starts
+shirley_BG=[[]]
+
+shirley_BG_sum=[0]*len(y)
+for i in range(int(number_of_peaks*number_of_spectra)):
+    S_BG=shirley_BG_fkt(i)
+    I_high[i]=np.sum(S_BG)
+    shirley_BG.append(S_BG)
+    for j in range(len(y)):
+        shirley_BG_sum[j]=shirley_BG_sum[j] + S_BG[j]-I_low[i]
+
+pars["lin_slope"].set(value=0, vary=False)
+pars["lin_intercept"].set(value=I_low[0])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def PeakModel (xraw,yraw,Straightline,I1,I2):
     
     initialtime=time.time()
