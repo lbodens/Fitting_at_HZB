@@ -19,7 +19,7 @@ import math
 
 
 """-------------------------------------------------------Gets the working directory, and the number & type of files in it------------------------------------------------------------"""
-osdirr=[]
+"""osdirr=[]
 Directory=[]
 NoFiles=[]
 filetype=0
@@ -52,12 +52,12 @@ def directory(Directory,NoFiles,filetype,osdirr):
     #print(filetype)
     NoFiles = len(Directory)
     return (Directory,NoFiles,filetype,osdirr)
-Directory,NoFiles,filetype,osdirr = directory(Directory,NoFiles,filetype,osdirr)
+Directory,NoFiles,filetype,osdirr = directory(Directory,NoFiles,filetype,osdirr)"""
 """-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
 
 
 """--------------------------------------------Reads the files and saves in a dataframe [array of eV & count]-------------------------------------------------"""
-filesread=[]
+"""filesread=[]
 def filereader(Directory,filesread,filetype):
     print(Directory)
     len(Directory)
@@ -79,13 +79,13 @@ def filereader(Directory,filesread,filetype):
             filesread.append(file1)    
     print(filesread)
     return filesread
-filesread = filereader(Directory,filesread,filetype)
+filesread = filereader(Directory,filesread,filetype)"""
 """-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
     
     
     
 """-------------------------------------------------------Saves all the names of the read files ------------------------------------------------------------"""    
-names=[]
+"""names=[]
 def filenamer(Directory,osdirr):   
     #print(Directory)
     '''------Stores the file names of the imported csv/dat files------'''
@@ -116,22 +116,22 @@ def filenamer(Directory,osdirr):
         names.append(name)
         print(names)
     return names
-names = filenamer(Directory,osdirr)   
+names = filenamer(Directory,osdirr)   """
 """-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
 
 """-------------------------------------------------------Makes eV the index of the arrays------------------------------------------------------------"""   
-filesread_eV=[]
+"""filesread_eV=[]
 def energyscalebasis(filesread):
     filesread_eV=[x.copy() for x in filesread]
     filesread_eV=[x.set_index('eV') for x in filesread_eV]   
     return filesread_eV
 
-filesread_eV = energyscalebasis(filesread)
+filesread_eV = energyscalebasis(filesread)"""
 """-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
 
  
 """-------------------------------------------------------Cuts all of the files in the filesread to the same eV range---------------------------------------------"""    
-filesread_sameeV=[]
+"""filesread_sameeV=[]
 eVrange=[]
 def sameenergyrange(filesread,eVrange):
     filesread_sameeV=[x.copy() for x in filesread]
@@ -144,7 +144,7 @@ def sameenergyrange(filesread,eVrange):
     eVlist=filesread_sameeVCopy[0].index.values.tolist()
     eVrange=np.array(eVlist)
     return (filesread_sameeVCopy,eVrange)
-filesread_sameeV,eVrange = sameenergyrange(filesread,eVrange)    
+filesread_sameeV,eVrange = sameenergyrange(filesread,eVrange)    """
 """-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
 
 #------------------^------------------------------------------
@@ -269,7 +269,7 @@ from lmfit.models import DoniachModel
 """----------------------------------------------------------------------------------------------------------------------------------------"""
 """------------------------------------------------------Shirley background fit------------------------------------------------------------"""
 """----------------------------------------------------------------------------------------------------------------------------------------"""
-def shirley_baseline(x,y,I1,I2):
+"""def shirley_baseline(x,y,I1,I2):
     ''' Function calculates the Shirley background 
     following Bruckner's approach. The background 
     is calculated iteratively and then subtracted from the dataset.'''
@@ -321,7 +321,7 @@ def shirley_BG_fkt(i):#,I_low_i,I_high_i):
         S_BG = I_low_i + (I_high_i - I_low_i) * (np.sum(voigt_fkt[idx:len(y)])) / (voigt_sum)
         shirley_BG.append(S_BG)
 
-    return shirley_BG
+    return shirley_BG"""
 
 
 """----------------------------------------------------------------------------------------------------------------------------------------"""
@@ -363,25 +363,27 @@ if file_type == "file":
 if file_type == "folder":
     dat = dat_merger_multiple_files_fkt(folder_path,int(skip_rows),number_of_spectra)
 
-# creating the vars for I_low & I_high and other boundaries
+"""# creating the vars for I_low & I_high and other boundaries
 ymin = 156.9            # TODO change the ymin and x calculations
 ymax = 170
 if ymin > ymax:
-    y_holder = ymin
-    ymin = ymax
-    ymax = y_holder
+    ymin, ymax = ymax, ymin
 xmin = 1191.75
 xmax = 1206.75
 xraw=dat["E"].to_numpy()
 
-I_low = [0]*number_of_spectra*number_of_peaks
-I_high = [0]*number_of_spectra*number_of_peaks
-I_low[0] = ymin
-I_high[0]= (ymax-ymin)/int(number_of_peaks)+I_low[0]
-for i in range(1,int(number_of_peaks*number_of_spectra)):
-    I_low[i] = I_high[i-1]
-    I_high[i]= (ymax-ymin)/int(number_of_peaks)+I_low[i]
+def I_high_low_init_calc_fkt():
+    I_low = [0] * number_of_spectra * number_of_peaks
+    I_high = [0] * number_of_spectra * number_of_peaks
+    I_low[0] = ymin
+    I_high[0] = (ymax - ymin) / int(number_of_peaks) + I_low[0]
+    for i in range(1, int(number_of_peaks * number_of_spectra)):
+        I_low[i] = I_high[i - 1]
+        I_high[i] = (ymax - ymin) / int(number_of_peaks) + I_low[i]
+    return I_low, I_high"""
 
+
+#I_low, I_high = I_high_low_init_calc_fkt()
 
 
 #plotting the first spectra to get better overview
@@ -425,8 +427,146 @@ if peak_type == "Lorentz":
 #    attribute_nr = ???
 """-----------------------------------------------------------------------------"""
 
+
+
+"""-----------------------------------------------------------------------------------------------"""
+"""-----------------------------------------------------------------------------------------------"""
+"""-------------------------------new shirley stuf from Flo---------------------------------------"""
+"""-----------------------------------------------------------------------------------------------"""
+"""-----------------------------------------------------------------------------------------------"""
+#TODO !!!!!! here Marianne ;) have fun fiding the error :P
+def shirley_bg(x, low=0., high=.1):
+    print("CALLING SHIRLEY WITH low", low, "high:", high)
+    return low, high
+
+def create_bg(left, right):
+    low, high = right
+    cumsum = np.cumsum(left)
+    return left + low + (high - low) * (cumsum/cumsum[-1])
+
+def build_curve_from_peaks(n_peaks=1, peak_func=lmfit.models.VoigtModel):
+
+    model = None
+    for i in range(number_of_spectra):
+        for idx in range(n_peaks):
+            prefix = f'p{i}_{idx}_'
+            peak = peak_func(prefix=prefix)
+            bg = lmfit.Model(shirley_bg, prefix=prefix)
+            comp = lmfit.CompositeModel(peak, bg, create_bg)
+
+            if model:
+                model += comp
+            else:
+                model = comp
+
+        return model
+
+mod = build_curve_from_peaks(number_of_peaks)
+pars = mod.make_params()
+print(y)
+"""-----------creating the shirley BG steps fkt heights-----------"""
+#pars['p{i}_0_high'].set(value=ymin)
+for i in range(number_of_spectra):
+    pars[f'p{i}_0_high'].set(value=y[int(len(y))-1])
+    print(pars[f'p{i}_0_high'])
+    for idx in range(number_of_peaks):
+#     pars[f'p{idx}_center'].set(value=peak_pos[idx])
+#        pars[f'p{idx}_sigma'].set(value=sigmas[idx])
+#        pars[f'p{idx}_amplitude'].set(value=amplitudes[idx])
+        pars.add(f'p{i}_{idx}_delta', value=0, min=0, max=ymax)
+        print(pars[f'p{i}_{idx}_delta'])
+        if idx > 0:
+            pars[f'p{i}_{idx}_high'].set(expr=f'p{i}_{idx - 1}_low')
+            print(pars[f'p{i}_{idx}_high'])
+        pars[f'p{i}_{idx}_low'].set(expr=f'p{i}_{idx}_high-p{i}_{idx}_delta')
+        print(pars[f'p{i}_{idx}_low'])
+
+
+mod.eval(x=x, params=pars)
+plt.plot(x, y, label='data')
+plt.plot(x, mod.eval(x=x, params=pars), label='start values')
+#plt.plot(x, fit_res.eval(x=x, params=pars), label='end values')
+plt.legend(loc='best')
+plt.show()
+plt.close()
+
+"""--------------- updating parameters from JSON or YAML file-----------------"""
+## define a model
+param_file_type_str = "yaml"
+if param_file_type_str == "yaml":
+    param_file_type = yaml
+if param_file_type_str == "json":
+    param_file_type = json
+# json
+
+
+data_param_file = param_file_type.load(open('test_param.'+param_file_type_str), Loader=param_file_type.FullLoader)
+#pars = mod.make_params()
+
+for p_name, p_vals in data_param_file.items():
+    pars[p_name].set(**p_vals)
+
+
+"""------------the actual fitting----------"""
+fit_res = mod.fit(y, x=x, params=pars)
+print(pars)
+
+
+mod.eval(x=x, params=pars)
+plt.plot(x, y, label='data')
+plt.plot(x, mod.eval(x=x, params=pars), label='start values')
+plt.plot(x, fit_res.eval(x=x, params=pars), label='end values')
+plt.legend(loc='best')
+plt.show()
+
+""" saving output into diff file"""
+for p_name, p_value in fit_res.values.items():
+    # important, otherwise expr will not work anymore!
+    if pars[p_name].vary:
+        if p_name not in data_param_file:
+            data_param_file[p_name] = {}
+            data_param_file[p_name]["value"] = 0
+        data_param_file[p_name]["value"] = p_value
+param_file_type.dump(data_param_file, open("updated_test_param."+param_file_type_str, "w"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 """---------------creating the wanted nr and type of peaks----------------------"""
-Model = []
+"""Model = []
 pars = Parameters()
 for j in range(int(number_of_spectra)):
     for i in range(int(number_of_peaks)):
@@ -442,12 +582,12 @@ for j in range(int(number_of_spectra)):
         if peak_type =="Lorentz":
             Model.append(LorentzianModel(prefix='l'+str(j)+'_'+str(i)+'_'))
             pars.update(Model[i+int(number_of_peaks)*j].make_params())
-            mod = mod + Model[i+int(number_of_peaks)*j]
+            mod = mod + Model[i+int(number_of_peaks)*j]"""
 """--------------------------------------------------------------------------"""
 
 
 """---------------Importing previous parameter file ----------------------"""
-# checking for prevoius parameters
+"""# checking for prevoius parameters
 prev_params = input("do you have prevoius parameters?")
 if prev_params == "yes" or prev_params == "y":
     parameter_file_direc = input("is it in the same directory?")
@@ -460,7 +600,7 @@ if prev_params == "yes" or prev_params == "y":
             "enter the file path to the parameters (w/o the filename itself but with the \ at the end!)")
         sys.path.insert(1, parameter_file_path)
         from parameter_file import *
-        parameter_file(pars, number_of_spectra)
+        parameter_file(pars, number_of_spectra)"""
 """-------------------------------------------------------------------------"""
 
 
@@ -535,7 +675,7 @@ plot_checking()
 
 """--------------------------------------actual fitting fkt------------------------------------------------"""
 
-#here the shirley calc for each peac starts
+"""#here the shirley calc for each peac starts
 shirley_BG=[[]]
 
 shirley_BG_sum=[0]*len(y)
@@ -549,7 +689,7 @@ for i in range(int(number_of_peaks*number_of_spectra)):
 pars["lin_slope"].set(value=0, vary=False)
 pars["lin_intercept"].set(value=I_low[0])
 
-
+"""
 
 
 
