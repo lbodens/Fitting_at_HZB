@@ -1,0 +1,18 @@
+test:
+  max: 2
+  min: 0
+  value: 1
+test2:
+  expr: 1-test
+v0_1_amplitude:
+  value: 29232
+v0_1_center:
+  value: 871.388368
+v0_1_gamma:
+  max: 5
+  min: 0.01
+  value: 6.0e-05
+v0_1_sigma:
+  max: 5
+  min: 0.01
+  value: 0.85

@@ -1,0 +1,10 @@
+{
+    "test"          : {"value": 1,      "min": 0,   "max": 2},
+    "test2"         : {"expr": "1-test"},
+    
+    "v0_1_amplitude": {"value": 29232},
+    "v0_1_center"   : {"value": 871.388368},
+    "v0_1_sigma"    : {"value":0.85,    "min":0.01, "max":5},
+	"v0_1_gamma"    : {"value":0.00006, "min":0.01, "max":5}
+    
+}
