@@ -224,10 +224,27 @@ def dat_merger_multiple_files_fkt(folder_path, skip_rows, number_of_spectra):
             df_S_hold["Spectra"] = df_S_hold["Spectra"].append(df_S_i["Spectra"], ignore_index=True)
     df_total = pd.concat([df_E_hold, df_S_hold], axis=1, names=["E", "Spectra"])
     return df_total
+
+def BE_or_KE_fkt(choice_input):                     # fkt to see if its in BE or KE and to get the necessary values (exertation energy)
+    if choice_input == "KE":
+        exertation_energy = float(input("please enter the exertation energy (in eV). like 1486.7\n"))
+        BE_or_KE = "KE"
+        return BE_or_KE, exertation_energy
+    if choice_input == "BE":
+        exertation_energy = 0
+        BE_or_KE = "BE"
+        return BE_or_KE, exertation_energy
+    else:
+        print("\nError, please type in 'BE' or 'KE'\n")
+        BE_or_KE = False
+        exertation_energy = 0
+        return BE_or_KE, exertation_energy
+
+
 """-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
 
 """------------------------------------Check, if the input is correct or not/catch it if its wrong ------------------------------------------------------------"""
-def correct_input_fkt(Input):                # fkt to check, if the path is correct
+def correct_input_fkt(Input):
     print("\nThe input:")
     print(Input)
     print("seem to be incorrect.\nYou seem to have misspelled the type or it is not included.\nPlease try again: ")
@@ -269,130 +286,186 @@ from lmfit.models import DoniachModel
 """----------------------------------------------------------------------------------------------------------------------------------------"""
 """------------------------------------------------------Shirley background fit------------------------------------------------------------"""
 """----------------------------------------------------------------------------------------------------------------------------------------"""
-"""def shirley_baseline(x,y,I1,I2):
-    ''' Function calculates the Shirley background 
-    following Bruckner's approach. The background 
-    is calculated iteratively and then subtracted from the dataset.'''
-    npts=len(y);
-    limsy=np.array([I1,I2])
-    lowlim = np.min(limsy);
-    BGND = np.repeat(lowlim,npts)#inital guess of linear background based on lower limit in y
-    SumBGND = np.sum(BGND);
-    SumRTF = np.sum(y)
-    RangeY = np.diff(list(reversed(limsy)));#print RangeY
-    
-    maxit = 50 
-    err = 1e-6
-    if  np.diff(limsy) > 0:
-        nloop = 0
-        while nloop < maxit:
-            nloop = nloop + 1
-            for idx in list(reversed(range(npts))):
-                #print (npts-idx-1),BGND[npts-idx-1]
-                BGND[npts-idx-1] = ((RangeY/(SumRTF-np.sum(BGND)))*
-                    (np.sum(y[idx:(npts)]))-np.sum(BGND[idx:(npts)]))+lowlim
-                #print BGND[npts-idx-1]
-            if (np.abs((np.sum(BGND)-SumBGND)/SumBGND ) < err):
-                break
-            SumBGND = np.abs(np.sum(BGND))
+def shirley_bg(x, low=0., high=.1):
+    return low, high
+
+
+def create_bg(left, right):
+    low, high = right
+    cumsum = np.cumsum(left)
+    return left + low + (high - low) * (cumsum / cumsum[-1])
+
+
+def build_curve_from_peaks(n_peaks=1):
+    if peak_type == "Voigt":
+        peak_func = lmfit.models.VoigtModel
+    if peak_type == "Gauss":
+        peak_func = lmfit.models.GaussiantModel
+    if peak_type == "Lorentz":
+        peak_func = lmfit.models.LorentzianModel
+    #if peak_type == ???:                       TODO if one want to add one
+    #    peak_func = lmfit.models.???Model
+    model = None
+    for i in range(number_of_spectra):
+        for idx in range(n_peaks):
+            prefix = f'p{i}_{idx}_'
+            peak = peak_func(prefix=prefix)
+            bg = lmfit.Model(shirley_bg, prefix=prefix)
+            comp = lmfit.CompositeModel(peak, bg, create_bg)
+            print(idx)
+            if model:
+                model += comp
+            else:
+                model = comp
+
+        return model
+
+def param_updater(param_file_type):
+    if param_file_type == "yaml":
+        param_file_type = yaml
+        param_file_type_str = "yaml"
+    if param_file_type == "json":
+        param_file_type = json
+        param_file_type_str = "json"
+    params = param_file_type.load(open('test_param.' +param_file_type_str), Loader=param_file_type.FullLoader)
+    pars = lmfit.Parameters()
+    for name, rest in params.items():
+        pars.add(lmfit.Parameter(name=name, **rest))
+    return pars
+
+def shirley_param_calc(pars):
+    deltas = (yraw[len(yraw) - 1] - yraw[0])
+    for i in range(number_of_spectra):
+        p4fit[f'p{i}_0_low'].set(value=yraw[0])
+        for idx in range(number_of_peaks):
+            p4fit[f'p{i}_{idx}_center'].set(value=pars[f'p{i}_{idx}_center'].value)
+            p4fit[f'p{i}_{idx}_amplitude'].set(value=pars[f'p{i}_{idx}_amplitude'].value)
+            p4fit[f'p{i}_{idx}_sigma'].set(value=pars[f'p{i}_{idx}_sigma'].value)
+            p4fit[f'p{i}_{idx}_gamma'].set(value=pars[f'p{i}_{idx}_gamma'].value)
+
+            p4fit.add(f'p{i}_{idx}_delta', value=deltas / 9, min=0)
+            if idx > 0:
+                p4fit[f'p{i}_{idx}_low'].set(value=0, vary=False)
+            p4fit[f'p{i}_{idx}_high'].set(expr=f'p{i}_{idx}_low+p{i}_{idx}_delta')
+            print(p4fit[f'p{i}_{idx}_high'])
+    return mod, p4fit
+
+
+
+"""------------------fkt to show spectra with init peaks------------------------------------------"""
+"""------------------fkt to show spectra with init peaks------------------------------------------"""
+def choose_spectra_to_plot():
+    spectra_to_plot = int(input("please enter the spectra which you want to be shown\n"))
+    return spectra_to_plot
+
+
+def check_if_peak_inport_is_good():
+    check_shown_peak_input = input("Are these init parameters good enough? please enter 'yes'/'y' or 'no'/'n':\n")
+    if check_shown_peak_input == "yes" or check_shown_peak_input == "y":
+        check_shown_peak_input = True
+        return check_shown_peak_input
     else:
-        nloop=0
-        while nloop < maxit:
-            nloop=nloop+1
-            for idx in range(npts):
-                BGND[idx] = ((RangeY/(SumRTF-np.sum(BGND)))*
-                    (np.sum(y[idx:npts])-np.sum(BGND[idx:npts])))+lowlim
-            if (np.abs((np.sum(BGND)-SumBGND)/SumBGND ) < err):
+        check_shown_peak_input = False
+        return check_shown_peak_input
+
+
+
+def plotting(x, spectra_to_plot,number_of_peaks):
+    pars = param_updater(param_file_type)
+    mod, p4fit = shirley_param_calc(pars)
+    init = mod.eval(x=x, params=p4fit)
+    fig, axes = plt.subplots()
+    x = dat["E"].to_numpy()
+    yraw = dat["Spectra"].to_numpy()
+    axes.plot(x, yraw, 'b')
+    axes.plot(x, init, 'k--', label='initial fit')
+    plt.xlim([min(x) + (int(spectra_to_plot) - 1) * 10000, max(x) + (int(spectra_to_plot) - 1) * 10000])
+#    comps = mod.eval_components(x=x)
+#    for i in range(int(number_of_peaks)):
+#        #axes.plot(x, comps['lin_'], 'k-', label='const component')
+#        axes.plot(x, comps['p%s_%s_'%(spectra_to_plot-1,number_of_peaks-1)], 'g--', label='voigt component %s'%i)
+#        axes.legend(loc='best')
+    plt.show()
+
+
+def plot_checking():
+    spectra_to_plot_bool = False
+    are_pre_params_good_bool = False
+    spectra_to_plot = choose_spectra_to_plot()
+    while spectra_to_plot_bool == False and are_pre_params_good_bool == False:
+        while are_pre_params_good_bool == False:
+            plotting(x, spectra_to_plot, number_of_peaks)
+            are_pre_params_good_bool = check_if_peak_inport_is_good()
+            if are_pre_params_good_bool == True:
+                plt.close()
+                continue
+            if are_pre_params_good_bool == False:
+                plt.close()
+                print("Please change the paramter to the desired one\n")
+                continue
+        while spectra_to_plot_bool == False:
+            other_spectra_check = input("do you want to check other spectra as well?\n")
+            if other_spectra_check == "yes" or other_spectra_check == "y":
+                spectra_to_plot = choose_spectra_to_plot()
+                spectra_to_plot_bool = False
+                are_pre_params_good_bool = False
                 break
-            SumBGND = np.abs(np.sum(BGND))
+            if other_spectra_check == "no" or other_spectra_check == "n":
+                spectra_to_plot_bool = True
+                continue
 
-    BGND
-    return BGND
+"""-------------------------------------------------------------------------"""
 
-
-def shirley_BG_fkt(i):#,I_low_i,I_high_i):
-    I_low_i = I_low[i]                      # take the ith element of the low list
-    I_high_i = I_high[i]
-    voigt_i = Model[i]
-    voigt_fkt = voigt_i.eval(pars, x=x)     #change the voigtModel into actual numbers
-    voigt_sum = np.sum(voigt_i.eval(pars, x=x))     # get the total area of the peak
-    shirley_BG=[]
-    for idx in range(len(y)):
-        S_BG = I_low_i + (I_high_i - I_low_i) * (np.sum(voigt_fkt[idx:len(y)])) / (voigt_sum)
-        shirley_BG.append(S_BG)
-
-    return shirley_BG"""
-
-
-"""----------------------------------------------------------------------------------------------------------------------------------------"""
-
-'''------Cut the upper limit of the data------'''
-def find_nearest(array, value):
-    array = np.asarray(array)
-    idx = (np.abs(array - value)).argmin()
-    return idx
-#limit = find_nearest(eVrange,468)
-
-
-"""--------------Create linear offset----------------"""
-def straightline (x,y):
-    #First point
-    I1=np.average(y[0:10])  # dx = 0.05--> average over 1 eV
-    x1=x[0]
-    #End point
-    I2=np.average(y[-10:-1]) # dx = 0.1--> average over 1 eV
-    x2=x[-1]
-    #Straight line approximation
-    m=(I1-I2)/(x1-x2)
-    c=I1-((I1-I2)/(x1-x2))*x1
-    Straightline=m*x+c #array of straight line background approximation
-    return (Straightline, I1,I2)
-'''---------------------------------------------------------------------------------'''
 
 
 """--------------------general commands like: spectra merging & peak types--------------------------""" #TODO putting all of this at a good/practical/reasonable place in the code (like where it really starts and then it calls all the functions)
-#taking the wanted spectra and merge them into one long
+"""#taking the wanted spectra and merge them into one long                      <-- TODO: somehow the append doesn´t work anymore. also the dat needs to be updatet etc. this is the next/last step when going into multiple dimensions
 folder_or_file=folder_or_file()
-path = folder_or_file[0]
-file_type = folder_or_file[1]
-txt=folder_or_file[2]
-skip_rows = folder_or_file[3]
+path, file_type, txt, skip_rows= folder_or_file
 number_of_spectra = input("please enter the number of spectra you want to fit\n")
 if file_type == "file":
     dat = dat_merger_single_file_fkt(file_path, int(skip_rows), number_of_spectra)
 if file_type == "folder":
-    dat = dat_merger_multiple_files_fkt(folder_path,int(skip_rows),number_of_spectra)
-
-"""# creating the vars for I_low & I_high and other boundaries
-ymin = 156.9            # TODO change the ymin and x calculations
-ymax = 170
-if ymin > ymax:
-    ymin, ymax = ymax, ymin
-xmin = 1191.75
-xmax = 1206.75
-xraw=dat["E"].to_numpy()
-
-def I_high_low_init_calc_fkt():
-    I_low = [0] * number_of_spectra * number_of_peaks
-    I_high = [0] * number_of_spectra * number_of_peaks
-    I_low[0] = ymin
-    I_high[0] = (ymax - ymin) / int(number_of_peaks) + I_low[0]
-    for i in range(1, int(number_of_peaks * number_of_spectra)):
-        I_low[i] = I_high[i - 1]
-        I_high[i] = (ymax - ymin) / int(number_of_peaks) + I_low[i]
-    return I_low, I_high"""
+    dat = dat_merger_multiple_files_fkt(folder_path,int(skip_rows),number_of_spectra)"""
+skip_rows=1                 # this needs to be deleted later, when the part from above is fixed/updated
 
 
-#I_low, I_high = I_high_low_init_calc_fkt()
+
+dat_input = np.loadtxt("Ni2p_ref_sat_sub.dat", skiprows=skip_rows)                    # TODO just for testing (in 1D)
+dat=pd.DataFrame(columns=["E", "Spectra"])
+
+BE_or_KE_output  = False
+while BE_or_KE_output  == False:
+    BE_or_KE_input = input("Is the following energy scale in binding (BE) or kinetic (KE)? please enter 'BE' for binding or 'KE' for kinetic\n")
+    BE_or_KE_output = BE_or_KE_fkt(BE_or_KE_input)
+BE_or_KE,exertation_energy = BE_or_KE_output                        # extracting the exceration energy from BE_or_KE_fkt return
+
+if BE_or_KE_input == "BE":                                 #getting the energy from file and calculate the BE, if it was KE
+    dat["E"] = dat_input[:, 0]
+if BE_or_KE_input == "KE":
+    KE = dat_input[:, 0]
+    dat = KE - exertation_energy
+
+#swapping data in 1D --> neesds to be done automatically in the function dat_merger_single_file_fkt TODO
+dat["Spectra"] = dat_input[:, 2]                    #TODO<<-- will be changed to dat_input[:,1] later for multiple spectra/after testing
+
+if dat["E"][0] > dat["E"][len(df_E) - 1]:
+    dat = dat[::-1]
+    print("The input data was in decreasing energy. It was swapped for further process")
+
 
 
 #plotting the first spectra to get better overview
 fig, axes = plt.subplots()
 axes.plot(dat["E"], dat["Spectra"], 'b')
-plt.xlim([xmin, xmax])
-print("now a plot of the 1st spectra is shown, that you can quickly look if you want to change some pre set parameters. Close it to continue")
+plt.xlim([min(x), max(x)])
+print("Now a plot of the 1st spectra is shown, that you can quickly look if you want to change some pre set parameters. Close it to continue")
 plt.show()
-plt.colse()
+plt.close()
+
+
+
+
 
 #creating wanted number and types of peaks
 number_of_peaks = input("please enter the number of peaks you want to use for fitting\n")
@@ -428,96 +501,32 @@ if peak_type == "Lorentz":
 """-----------------------------------------------------------------------------"""
 
 
-
-"""-----------------------------------------------------------------------------------------------"""
-"""-----------------------------------------------------------------------------------------------"""
-"""-------------------------------new shirley stuf from Flo---------------------------------------"""
-"""-----------------------------------------------------------------------------------------------"""
-"""-----------------------------------------------------------------------------------------------"""
-#TODO !!!!!! here Marianne ;) have fun fiding the error :P
-def shirley_bg(x, low=0., high=.1):
-    print("CALLING SHIRLEY WITH low", low, "high:", high)
-    return low, high
-
-def create_bg(left, right):
-    low, high = right
-    cumsum = np.cumsum(left)
-    return left + low + (high - low) * (cumsum/cumsum[-1])
-
-def build_curve_from_peaks(n_peaks=1, peak_func=lmfit.models.VoigtModel):
-
-    model = None
-    for i in range(number_of_spectra):
-        for idx in range(n_peaks):
-            prefix = f'p{i}_{idx}_'
-            peak = peak_func(prefix=prefix)
-            bg = lmfit.Model(shirley_bg, prefix=prefix)
-            comp = lmfit.CompositeModel(peak, bg, create_bg)
-
-            if model:
-                model += comp
-            else:
-                model = comp
-
-        return model
+"""---------------Importing previous parameter file and check imputs ----------------------"""
+param_file_type = input("please enter if you are using 'yaml' or 'json'")
+pars= param_updater(param_file_type)
 
 mod = build_curve_from_peaks(number_of_peaks)
-pars = mod.make_params()
-print(y)
-"""-----------creating the shirley BG steps fkt heights-----------"""
-#pars['p{i}_0_high'].set(value=ymin)
-for i in range(number_of_spectra):
-    pars[f'p{i}_0_high'].set(value=y[int(len(y))-1])
-    print(pars[f'p{i}_0_high'])
-    for idx in range(number_of_peaks):
-#     pars[f'p{idx}_center'].set(value=peak_pos[idx])
-#        pars[f'p{idx}_sigma'].set(value=sigmas[idx])
-#        pars[f'p{idx}_amplitude'].set(value=amplitudes[idx])
-        pars.add(f'p{i}_{idx}_delta', value=0, min=0, max=ymax)
-        print(pars[f'p{i}_{idx}_delta'])
-        if idx > 0:
-            pars[f'p{i}_{idx}_high'].set(expr=f'p{i}_{idx - 1}_low')
-            print(pars[f'p{i}_{idx}_high'])
-        pars[f'p{i}_{idx}_low'].set(expr=f'p{i}_{idx}_high-p{i}_{idx}_delta')
-        print(pars[f'p{i}_{idx}_low'])
+p4fit = mod.make_params()
+mod, p4fit=shirley_param_calc(pars)
+
+#plt.plot(x, mod.eval(x=x, params=p4fit), label='start values')
+#plt.legend(loc='best')
+#plt.show()
+plot_checking()
 
 
-mod.eval(x=x, params=pars)
-plt.plot(x, y, label='data')
-plt.plot(x, mod.eval(x=x, params=pars), label='start values')
-#plt.plot(x, fit_res.eval(x=x, params=pars), label='end values')
+
+"""--------------------------------------actual fitting fkt------------------------------------------------"""
+fit_res = mod.fit(yraw, x=x, params=p4fit, max_nfev=1000)
+
+
+
+plt.plot(x, yraw, '.', label='data')
+plt.plot(x, fit_res.best_fit, '--', label='fit')
+plt.plot(x, mod.eval(x=x, params=p4fit), label='start values')
 plt.legend(loc='best')
 plt.show()
-plt.close()
 
-"""--------------- updating parameters from JSON or YAML file-----------------"""
-## define a model
-param_file_type_str = "yaml"
-if param_file_type_str == "yaml":
-    param_file_type = yaml
-if param_file_type_str == "json":
-    param_file_type = json
-# json
-
-
-data_param_file = param_file_type.load(open('test_param.'+param_file_type_str), Loader=param_file_type.FullLoader)
-#pars = mod.make_params()
-
-for p_name, p_vals in data_param_file.items():
-    pars[p_name].set(**p_vals)
-
-
-"""------------the actual fitting----------"""
-fit_res = mod.fit(y, x=x, params=pars)
-print(pars)
-
-
-mod.eval(x=x, params=pars)
-plt.plot(x, y, label='data')
-plt.plot(x, mod.eval(x=x, params=pars), label='start values')
-plt.plot(x, fit_res.eval(x=x, params=pars), label='end values')
-plt.legend(loc='best')
-plt.show()
 
 """ saving output into diff file"""
 for p_name, p_value in fit_res.values.items():
@@ -530,166 +539,9 @@ for p_name, p_value in fit_res.values.items():
 param_file_type.dump(data_param_file, open("updated_test_param."+param_file_type_str, "w"))
 
 
+"""---------------------------untill here the code should work "wuhoooo!!!!"-------------------------""" #TODO the x, xraw, dat["E"]needs to be sortet out!
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""---------------creating the wanted nr and type of peaks----------------------"""
-"""Model = []
-pars = Parameters()
-for j in range(int(number_of_spectra)):
-    for i in range(int(number_of_peaks)):
-        if peak_type =="Voigt" or peak_type =="voigt":
-            Model.append(VoigtModel(prefix='v'+str(j)+'_'+str(i)+'_'))
-            pars.update(Model[i+int(number_of_peaks)*j].make_params())
-            pars['v'+str(j)+'_'+str(i)+'_amplitude'].set(min=0)
-            mod = mod + Model[i+int(number_of_peaks)*j]
-        if peak_type =="Gauss":
-            Model.append(GaussianModel(prefix='g'+str(j)+'_'+str(i)+'_'))
-            pars.update(Model[i+int(number_of_peaks)*j].make_params())
-            mod = mod + Model[i+int(number_of_peaks)*j]
-        if peak_type =="Lorentz":
-            Model.append(LorentzianModel(prefix='l'+str(j)+'_'+str(i)+'_'))
-            pars.update(Model[i+int(number_of_peaks)*j].make_params())
-            mod = mod + Model[i+int(number_of_peaks)*j]"""
-"""--------------------------------------------------------------------------"""
-
-
-"""---------------Importing previous parameter file ----------------------"""
-"""# checking for prevoius parameters
-prev_params = input("do you have prevoius parameters?")
-if prev_params == "yes" or prev_params == "y":
-    parameter_file_direc = input("is it in the same directory?")
-    if parameter_file_direc == "yes" or parameter_file_direc == "y":
-        from parameter_file import *
-        parameter_file(pars, number_of_spectra)
-    else:
-        import sys
-        parameter_file_path = input(
-            "enter the file path to the parameters (w/o the filename itself but with the \ at the end!)")
-        sys.path.insert(1, parameter_file_path)
-        from parameter_file import *
-        parameter_file(pars, number_of_spectra)"""
-"""-------------------------------------------------------------------------"""
-
-
-"""------------------fkt to show spectra with init peaks------------------------------------------"""
-def choose_spectra_to_plot():
-    spectra_to_plot = int(input("please enter the spectra which you want to be shown"))
-    return spectra_to_plot
-
-
-def check_if_peak_inport_is_good():
-    check_shown_peak_input = input("Are these init parameters good enough? please enter 'yes'/'y' or 'no'/'n':")
-    if check_shown_peak_input == "yes" or check_shown_peak_input == "y":
-        check_shown_peak_input = True
-        return check_shown_peak_input
-    else:
-        check_shown_peak_input = False
-        return check_shown_peak_input
-
-
-
-def plotting(spectra_to_plot,number_of_peaks):
-    params_input(1,pars,number_of_spectra)
-    print(pars)
-    init = mod.eval(pars, x=xraw)
-    fig, axes = plt.subplots()
-    x = dat["E"].to_numpy()
-    yraw = dat["Spectra"].to_numpy()
-    axes.plot(x, yraw, 'b')
-    axes.plot(x, init, 'k--', label='initial fit')
-    plt.xlim([xmin + (int(spectra_to_plot) - 1) * 10000, xmax + (int(spectra_to_plot) - 1) * 10000])
-#    comps = init.eval_components(x=x)
-#    for i in range(int(number_of_peaks)):
-#        axes.plot(x, comps['lin_'], 'k-', label='const component')
-#        axes.plot(x, comps['v%s_%s'%(spectra_to_plot-1,number_of_peaks)], 'g--', label='voigt component 1')
-#        axes.legend(loc='best')
-    plt.show()
-
-
-def plot_checking():
-    spectra_to_plot_bool = False
-    are_pre_params_good_bool = False
-    spectra_to_plot = choose_spectra_to_plot()
-    while spectra_to_plot_bool == False and are_pre_params_good_bool == False:
- #       plotting(spectra_to_plot, number_of_peaks)
- #       plt.close()
-        while are_pre_params_good_bool == False:
-            params_input(1,pars,number_of_spectra)
-            print(pars)
-            init = mod.eval(pars, x=xraw)
-            plotting(spectra_to_plot, number_of_peaks)
-            are_pre_params_good_bool = check_if_peak_inport_is_good()
-            if are_pre_params_good_bool == True:
-                plt.close()
-                continue
-            if are_pre_params_good_bool == False:
-                plt.close()
-                print("Please change the paramter to the desired one")
-                continue
-        while spectra_to_plot_bool == False:
-            other_spectra_check = input("do you want to check other spectra as well?")
-            if other_spectra_check == "yes" or other_spectra_check == "y":
-                spectra_to_plot = choose_spectra_to_plot()
-                spectra_to_plot_bool = False
-                are_pre_params_good_bool = False
-                break
-            if other_spectra_check == "no" or other_spectra_check == "n":
-                spectra_to_plot_bool = True
-                continue
-
-plot_checking()
-"""-------------------------------------------------------------------------"""
-
-"""--------------------------------------actual fitting fkt------------------------------------------------"""
-
-"""#here the shirley calc for each peac starts
-shirley_BG=[[]]
-
-shirley_BG_sum=[0]*len(y)
-for i in range(int(number_of_peaks*number_of_spectra)):
-    S_BG=shirley_BG_fkt(i)
-    I_high[i]=np.sum(S_BG)
-    shirley_BG.append(S_BG)
-    for j in range(len(y)):
-        shirley_BG_sum[j]=shirley_BG_sum[j] + S_BG[j]-I_low[i]
-
-pars["lin_slope"].set(value=0, vary=False)
-pars["lin_intercept"].set(value=I_low[0])
-
-"""
 
 
 
