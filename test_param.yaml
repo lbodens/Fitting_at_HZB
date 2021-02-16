@@ -39,7 +39,7 @@ p0_2_sigma:
   min: 0.01
   max: 5
 p0_2_gamma:
-  value: 0.16
+  value: 0.36
   min: 0.01 
   max: 5
 

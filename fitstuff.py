@@ -3,16 +3,16 @@ import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-import  sys
+import sys
 import math
-from lmfit.models import  GaussianModel, VoigtModel, LinearModel, LorentzianModel
+from lmfit.models import GaussianModel, VoigtModel, LinearModel, LorentzianModel
 import lmfit
 
 plt.style.use('seaborn-ticks')
 mpl.rcParams.update({'font.size':16})
 
 
-dat = np.loadtxt("Ni2p_Ni-Kbeta_subtr.txt",skiprows=1)
+dat = np.loadtxt("Ni2p_ref_sat_sub.dat",skiprows=1)
 
 
 def shirley_bg(x, low=0., high=.1):
@@ -112,7 +112,7 @@ def shirley_bg(x, low=0., high=.1):
 def create_bg(left, right):
     low, high = right
     cumsum = np.cumsum(left)
-    return left + low + (high - low) * (cumsum/cumsum[-1])
+    return left + low + (high - low) * (1-cumsum/cumsum[-1])
 
 def build_curve_from_peaks(n_peaks=1, peak_func=lmfit.models.VoigtModel):
 
@@ -152,6 +152,7 @@ for idx in range(3):
     params[f'p{idx}_low'].set(expr=f'p{idx}_high-p{idx}_delta')
     print(params[f'p{idx}_low'])
 
+
 y  = mod_3_peaks.eval(x=x, params=params)
 dy = np.random.normal(y, 0.015)
 plt.plot(x, dy, '.', label='dummy data')
@@ -162,7 +163,7 @@ plt.show()
 
 
 x = dat[:, 0]
-y = dat[:,110]
+y = dat[:,2]
 
 plt.plot(900-x, y/y.max(), label='data')
 mod_8_peaks = build_curve_from_peaks(8)
@@ -170,6 +171,11 @@ p = mod_8_peaks.make_params()
 peak_pos   = [20, 25, 27.5, 35, 38.5, 43.5, 45.5, 55]
 amplitudes = [.5, .3, .4, .6, .7, .9, .45, .05]
 sigmas     = np.ones(8)*.5#[1.5, 1, .8, 2, 1, .9, .45, 1]
+
+plt.plot(900-x, y/y.max(), label='data')
+plt.plot(900-x, mod_8_peaks.eval(x=900-x, params=p), label='start values')
+plt.legend(loc='best')
+plt.show()
 
 p['p0_high'].set(value=0.15)
 for idx in range(8):
@@ -183,6 +189,11 @@ for idx in range(8):
         print(p[f'p{idx}_high'])
     p[f'p{idx}_low'].set(expr=f'p{idx}_high-p{idx}_delta')  
     print(p[f'p{idx}_low'])
+    plt.plot(900 - x, y / y.max(), label='data')
+    plt.plot(900 - x, mod_8_peaks.eval(x=900 - x, params=p), label='start values')
+    #plt.legend(loc='best')
+    plt.show()
+
 
 mod_8_peaks.eval(x=900-x, params=p)
 plt.plot(900-x, y/y.max(), label='data')
@@ -194,7 +205,7 @@ plt.show()
 
 fit_res = mod_8_peaks.fit(y/y.max(), x=900-x, params=p)
 x = dat[:, 0]
-y = dat[:,110]
+y = dat[:,2]
 
 plt.plot(900-x, y/y.max(), '.', label='data')
 
