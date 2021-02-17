@@ -179,68 +179,65 @@ def folder_or_file():
         skip_row_nr = input("Please enter number of rows above incl the headder line ('# Energy Kinetic' or what ever the header is)\n")
         return folder_path,type,txt, skip_row_nr
 
+def BE_or_KE_fkt():
+    BE_or_KE_check = False
+    while BE_or_KE_check == False:
+        choice_input = input(
+            "Is the following energy scale in binding (BE) or kinetic (KE)? please enter 'BE' for binding or 'KE' for kinetic\n")
+        if choice_input == "KE":
+            exertation_energy = float(input("Please enter the exertation energy (in eV). like 1486.7\n"))
+            BE_or_KE = "KE"
+            BE_or_KE_check = True
+        elif choice_input == "BE":
+            exertation_energy = 0
+            BE_or_KE = "BE"
+            BE_or_KE_check = True
+        else:
+            print("\nError, please type in 'BE' or 'KE'\n")
+            BE_or_KE_check = False
+
+    return BE_or_KE, exertation_energy
+
+def energy_test_fkt(d):
+    dat_E = d["dat_0"]["E"]
+    if dat_E[0] > dat_E[len(dat_E) - 1]:
+        print("The data energy was decreasing instead of increasing. Therefore the data got swapped\n")
+        for i in range(number_of_spectra):
+            d["dat_%i" % i] = d["dat_%i" % i][::-1]
+    return d
 
 def dat_merger_single_file_fkt(file_path, skip_rows, number_of_spectra):
     df = pd.read_csv(file_path + txt, skiprows=skip_rows, delim_whitespace=True, header=None)
-    df_E=pd.DataFrame(columns=["E"])
-    df_S=pd.DataFrame(columns=["Spectra"])
-    df_E_hold=pd.DataFrame(columns=["E"])
-    df_S_hold=pd.DataFrame(columns=["Spectra"])
-    df_E["E"] = df.iloc[:, 0]
-    df_S["Spectra"] = df.iloc[:, 1]
-    for i in range(1, int(number_of_spectra)):
-        df_S_i = pd.DataFrame(columns=["Spectra"])
-        df_S_i["Spectra"] = df.iloc[:, i + 1]
-        if i == 1:
-            df_E_hold["E"] = df_E["E"].append(df_E["E"] + 10000 * i, ignore_index=True)
-            df_S_hold["Spectra"] = df_S["Spectra"].append(df_S_i["Spectra"], ignore_index=True)
-        else:
-            df_E_hold["E"] = df_E_hold["E"].append(df_E["E"] + 10000 * i, ignore_index=True)
-            df_S_hold["Spectra"] = df_S_hold["Spectra"].append(df_S_i["Spectra"], ignore_index=True)
-    df_total = pd.concat([df_E_hold, df_S_hold], axis=1, names=["E", "Spectra"])
-    return df_total
+    d={}
+    BE_or_KE, exertation_energy  = BE_or_KE_fkt()
 
+    for i in range(number_of_spectra):
+        d["dat_%i"%i]=pd.DataFrame(columns=["E", "Spectra"])
+        if BE_or_KE == "BE":
+            d["dat_%i"%i]["E"] = df.iloc[:, 0]
+        if BE_or_KE == "KE":
+            d["dat_%i" % i]["E"] = df.iloc[:, 0] - exertation_energy
+        d["dat_%i" % i]["Spectra"] = df.iloc[:, i+1]
+
+    d = energy_test_fkt(d)
+    return d
 
 def dat_merger_multiple_files_fkt(folder_path, skip_rows, number_of_spectra):
     txt_files = glob.glob(folder_path + "*" + txt)
-    df = pd.read_csv(txt_files[0], skiprows=skip_rows, delim_whitespace=True, header=None)
-    df_E=pd.DataFrame(columns=["E"])
-    df_S=pd.DataFrame(columns=["Spectra"])
-    df_E_hold=pd.DataFrame(columns=["E"])
-    df_S_hold=pd.DataFrame(columns=["Spectra"])
-    df_E["E"] = df.iloc[:, 0]
-    df_S["Spectra"] = df.iloc[:, 1]
-    for i in range(1, int(number_of_spectra)):
+    BE_or_KE, exertation_energy = BE_or_KE_fkt()
+
+    d={}
+    for i in range(number_of_spectra):
         df = pd.read_csv(txt_files[i], skiprows=skip_rows, delim_whitespace=True, header=None)
-        df_E_i = pd.DataFrame(columns=["E"])
-        df_E_i["E"] = df.iloc[:, 0]
-        df_S_i = pd.DataFrame(columns=["Spectra"])
-        df_S_i["Spectra"] = df.iloc[:, 1]
-        if i == 1:
-            df_E_hold["E"] = df_E["E"].append(df_E["E"] + 10000 * i, ignore_index=True)
-            df_S_hold["Spectra"] = df_S["Spectra"].append(df_S_i["Spectra"], ignore_index=True)
-        else:
-            df_E_hold["E"] = df_E_hold["E"].append(df_E["E"] + 10000 * i, ignore_index=True)
-            df_S_hold["Spectra"] = df_S_hold["Spectra"].append(df_S_i["Spectra"], ignore_index=True)
-    df_total = pd.concat([df_E_hold, df_S_hold], axis=1, names=["E", "Spectra"])
-    return df_total
+        d["dat_%i" % i] = pd.DataFrame(columns=["E", "Spectra"])
+        if BE_or_KE == "BE":
+            d["dat_%i" % i]["E"] = df.iloc[:, 0]
+        if BE_or_KE == "KE":
+            d["dat_%i" % i]["E"] = df.iloc[:, 0] - exertation_energy
+        d["dat_%i" % i]["Spectra"] = df.iloc[:, 1]
 
-def BE_or_KE_fkt(choice_input):                     # fkt to see if its in BE or KE and to get the necessary values (exertation energy)
-    if choice_input == "KE":
-        exertation_energy = float(input("please enter the exertation energy (in eV). like 1486.7\n"))
-        BE_or_KE = "KE"
-        return BE_or_KE, exertation_energy
-    if choice_input == "BE":
-        exertation_energy = 0
-        BE_or_KE = "BE"
-        return BE_or_KE, exertation_energy
-    else:
-        print("\nError, please type in 'BE' or 'KE'\n")
-        BE_or_KE = False
-        exertation_energy = 0
-        return BE_or_KE, exertation_energy
-
-
+    d = energy_test_fkt(d)
+    return d
 """-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
 
 """------------------------------------Check, if the input is correct or not/catch it if its wrong ------------------------------------------------------------"""
