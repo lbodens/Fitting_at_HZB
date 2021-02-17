@@ -416,46 +416,21 @@ def plot_checking():
 
 
 """--------------------general commands like: spectra merging & peak types--------------------------""" #TODO putting all of this at a good/practical/reasonable place in the code (like where it really starts and then it calls all the functions)
-"""#taking the wanted spectra and merge them into one long                      <-- TODO: somehow the append doesn´t work anymore. also the dat needs to be updatet etc. this is the next/last step when going into multiple dimensions
+#taking the wanted spectra and merge them into one long                      <-- TODO: somehow the append doesn´t work anymore. also the dat needs to be updatet etc. this is the next/last step when going into multiple dimensions
 folder_or_file=folder_or_file()
 path, file_type, txt, skip_rows= folder_or_file
+
 number_of_spectra = input("please enter the number of spectra you want to fit\n")
 if file_type == "file":
-    dat = dat_merger_single_file_fkt(file_path, int(skip_rows), number_of_spectra)
+    d = dat_merger_single_file_fkt(file_path, int(skip_rows), number_of_spectra)
 if file_type == "folder":
-    dat = dat_merger_multiple_files_fkt(folder_path,int(skip_rows),number_of_spectra)"""
-skip_rows=1                 # this needs to be deleted later, when the part from above is fixed/updated
-
-
-
-dat_input = np.loadtxt("Ni2p_ref_sat_sub.dat", skiprows=skip_rows)                    # TODO just for testing (in 1D)
-dat=pd.DataFrame(columns=["E", "Spectra"])
-
-BE_or_KE_output  = False
-while BE_or_KE_output  == False:
-    BE_or_KE_input = input("Is the following energy scale in binding (BE) or kinetic (KE)? please enter 'BE' for binding or 'KE' for kinetic\n")
-    BE_or_KE_output = BE_or_KE_fkt(BE_or_KE_input)
-BE_or_KE,exertation_energy = BE_or_KE_output                        # extracting the exceration energy from BE_or_KE_fkt return
-
-if BE_or_KE_input == "BE":                                 #getting the energy from file and calculate the BE, if it was KE
-    dat["E"] = dat_input[:, 0]
-if BE_or_KE_input == "KE":
-    KE = dat_input[:, 0]
-    dat = KE - exertation_energy
-
-#swapping data in 1D --> neesds to be done automatically in the function dat_merger_single_file_fkt TODO
-dat["Spectra"] = dat_input[:, 2]                    #TODO<<-- will be changed to dat_input[:,1] later for multiple spectra/after testing
-
-if dat["E"][0] > dat["E"][len(df_E) - 1]:
-    dat = dat[::-1]
-    print("The input data was in decreasing energy. It was swapped for further process")
-
+    d = dat_merger_multiple_files_fkt(folder_path,int(skip_rows),number_of_spectra)
 
 
 #plotting the first spectra to get better overview
 fig, axes = plt.subplots()
-axes.plot(dat["E"], dat["Spectra"], 'b')
-plt.xlim([min(x), max(x)])
+axes.plot(d["dat_0"]["E"], d["dat_0"]["Spectra"], 'b')
+plt.xlim([min(d["dat_0"]["E"]), max(d["dat_0"]["E"])])
 print("Now a plot of the 1st spectra is shown, that you can quickly look if you want to change some pre set parameters. Close it to continue")
 plt.show()
 plt.close()
