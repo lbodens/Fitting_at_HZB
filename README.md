@@ -22,3 +22,13 @@
 #
 # furthermore gives the code you the opportunity to check your previous param input for the spectra you want. If you are unhappy with them, change them in the test_param file
 # and the new params will be updated.  
+#
+# 
+
+
+# Adittionall files in the folder (right now):
+#
+# 20210223_112711 is a picture of the current code and how the functions are connected with eaych other and the parameters (needs to be updated/refined)
+# the 'Fitting_test_2' is an example code, which works but does not includes all the stuff as in the main script. SO that someone can test it on its own PC and doesn´t have to run through all the stuff again
+# the same foes for the 'Shirley_test_3' and 'fitstuff'
+# 'Ni2p_Ni-Kbeta_subtr' is an test file with 169 diff Ni2p spectra inside and 'Ni2p_ref_sat_sub' is a reference of Ni2p
