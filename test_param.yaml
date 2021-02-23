@@ -39,7 +39,7 @@ p0_2_sigma:
   min: 0.01
   max: 5
 p0_2_gamma:
-  value: 0.36
+  value: 0.16
   min: 0.01 
   max: 5
 
@@ -53,12 +53,12 @@ p0_3_sigma:
   min: 0.01
   max: 5
 p0_3_gamma:
-  value: 0.0092
+  value: 0.092
   min: 0.01
   max: 5
 
 p0_4_amplitude:
-  value: 89486.989
+  value: 189486.989
   min : 0
 p0_4_center:
   value: 861.368368
@@ -67,7 +67,7 @@ p0_4_sigma:
   min: 0.01 
   max: 5
 p0_4_gamma:
-  value: 0.6
+  value: 1.6
   min: 0.01 
   max: 5
 
@@ -100,7 +100,7 @@ p0_6_gamma:
   max: 5
 
 p0_7_amplitude:
-  value: 44466.3460
+  value: 84466.3460
   min : 0
 p0_7_center:
   value:  876.385968
@@ -109,7 +109,7 @@ p0_7_sigma:
   min: 0.01
   max: 5 
 p0_7_gamma:
-  value: 0.00006
+  value: 0.9
   min: 0.01
   max: 5
 
@@ -123,6 +123,136 @@ p0_8_sigma:
   min: 0.01
   max: 5
 p0_8_gamma:
+  value: 0.16
+  min: 0.01 
+  max: 5
+
+
+p1_0_amplitude:
+  value: 36773.7118
+  min : 0
+p1_0_center:
+  value: 854.118368
+  min: 850
+  max: 860
+p1_0_sigma:
+  value: 0.54
+  min: 0.01
+  max: 5
+p1_0_gamma:
+  value: 0.0092
+  min: 0.01
+  max: 5
+
+p1_1_amplitude:
+  value: 29232
+  min : 0  
+p1_1_center:
+  value: 871.388368
+p1_1_sigma:
+  value: 0.85
+  min: 0.01
+  max: 5
+p1_1_gamma:
+  value: 0.00006
+  min: 0.01
+  max: 5
+
+
+p1_2_amplitude:
+  value: 145099.013
+  min : 0
+p1_2_center:
+  value: 855.789468
+p1_2_sigma:
+  value: 1.91
+  min: 0.01
+  max: 5
+p1_2_gamma:
+  value: 0.16
+  min: 0.01 
+  max: 5
+
+p1_3_amplitude:
+  value: 34622.382
+  min: 0
+p1_3_center:
+  value: 873.059468
+p1_3_sigma:
+  value: 0.64
+  min: 0.01
+  max: 5
+p1_3_gamma:
+  value: 0.092
+  min: 0.01
+  max: 5
+
+p1_4_amplitude:
+  value: 189486.989
+  min : 0
+p1_4_center:
+  value: 861.368368
+p1_4_sigma:
+  value: 0.85
+  min: 0.01 
+  max: 5
+p1_4_gamma:
+  value: 1.6
+  min: 0.01 
+  max: 5
+
+p1_5_amplitude:
+  value: 12058.44330
+  min : 0
+p1_5_center:
+  value: 864.317768
+p1_5_sigma:
+  value: 1.91
+  min: 0.01 
+  max: 5
+p1_5_gamma:
+  value: 0.16
+  min: 0.01 
+  max: 5
+
+p1_6_amplitude:
+  value: 4675.79768
+  min: 0
+p1_6_center:
+  value: 866.618368
+p1_6_sigma:
+  value: 0.64
+  min: 0.01 
+  max: 5
+p1_6_gamma:
+  value: 0.0092
+  min: 0.01 
+  max: 5
+
+p1_7_amplitude:
+  value: 84466.3460
+  min : 0
+p1_7_center:
+  value:  876.385968
+p1_7_sigma:
+  value: 0.85
+  min: 0.01
+  max: 5 
+p1_7_gamma:
+  value: 0.9
+  min: 0.01
+  max: 5
+
+p1_8_amplitude:
+  value: 102677.539
+  min : 0
+p1_8_center:
+  value: 880.485368
+p1_8_sigma:
+  value: 1.91
+  min: 0.01
+  max: 5
+p1_8_gamma:
   value: 0.16
   min: 0.01 
   max: 5

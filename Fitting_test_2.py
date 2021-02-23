@@ -4,14 +4,13 @@ from lmfit.models import ExponentialModel, GaussianModel, VoigtModel, LinearMode
     ExpressionModel, LorentzianModel
 from numpy import array, linspace, arange, zeros, ceil, amax, amin, argmax, argmin, abs
 from numpy.linalg import norm
-from lmfit import Parameters
 import pandas as pd
 import functools, sys
 import scipy as sp
 from pandas import DataFrame
 import re,os,fnmatch,sys
 import lmfit.models
-from lmfit import minimize, Parameters
+from lmfit import minimize, Parameters, report_fit
 from scipy.optimize import leastsq
 from tkinter import filedialog
 from tkinter import *
@@ -124,12 +123,12 @@ def create_bg(left, right):
 
 
 def build_curve_from_peaks(i, idx, n_spectra=1):
-    if peak_type == "Voigt":
-        peak_func = lmfit.models.VoigtModel
-    if peak_type == "Gauss":
-        peak_func = lmfit.models.GaussiantModel
-    if peak_type == "Lorentz":
-        peak_func = lmfit.models.LorentzianModel
+    #if peak_type == "Voigt":
+    #    peak_func = lmfit.models.VoigtModel
+    #if peak_type == "Gauss":
+    #    peak_func = lmfit.models.GaussiantModel
+    #if peak_type == "Lorentz":
+    #    peak_func = lmfit.models.LorentzianModel
     #if peak_type == ???:
     #    peak_func = lmfit.models.???Model
     model = None
@@ -199,7 +198,26 @@ if file_type == "folder":
 
 number_of_spectra = 2
 number_of_peaks = 9
-peak_type = "Voigt"
+select_peak_type = False
+while select_peak_type == False:
+    peak_type = input("please enter the type of peak you are using.\n e.G. Voigt, Gauss, Lorentz")
+    if peak_type.lower() == "voigt":
+        peak_type == "Voigt"
+        select_peak_type == True
+        peak_func = lmfit.models.VoigtModel
+        break
+    if peak_type.lower() == "gauss":
+        peak_type == "Gauss"
+        select_peak_type == True
+        peak_func = lmfit.models.GaussianModel
+        break
+    if peak_type.lower() == "lorentz":
+        peak_type == "Lorentz"
+        select_peak_type == True
+        peak_func = lmfit.models.LorentzianModel
+        break
+    else:
+        select_peak_type = correct_input_fkt(peak_type)
 attribute_nr = 6
 
 
@@ -294,10 +312,14 @@ y_d, resid = y_for_fit(d)
 p4fit_pars = param_merger_from_per_peak_fkt(p4fit_d)
 model_eval = model_eval_fit_fkt(p4fit_d)
 
-#fit_test = minimize(fitting_over_all_spectra, p4fit_pars, args=(x, d), max_nfev=1000)
+out = minimize(fitting_over_all_spectra, p4fit_pars, args=(x, d), max_nfev=1000)
 
-#fit_test_pars_res= param_per_spectra_sorting_fkt(fit_test.params)
-#model_d_fitted = model_eval_fitted_fkt(fit_test_pars_res)
+out_params= param_per_spectra_sorting_fkt(out.params)
+model_d_fitted = model_eval_fitted_fkt(out_params)
+print(out)
+
+#report_fit(out.params)
+
 
 #out = minimize(fitting_over_all_spectra(), p4fit, args=(x, d))
 #report_fit(out.params)
@@ -306,10 +328,24 @@ axes.plot(x, y_d[0], 'black')
 axes.plot(x, y_d[1], 'r')
 axes.plot(x, model_eval[0], 'b')
 axes.plot(x, model_eval[1], 'g')
-#axes.plot(x, model_d_fitted[0], 'grey')
-#axes.plot(x, model_d_fitted[1], 'y')
-
-#plt.xlim([min(d["dat_120"]["E"]), max(d["dat_120"]["E"])])
-print("Now a plot of the 1st spectra is shown, that you can quickly look if you want to change some pre set parameters. Close it to continue")
+axes.plot(x, model_d_fitted[0], 'grey')
+axes.plot(x, model_d_fitted[1], 'y')
+print("Plot of fitted data. Close it to continue")
 plt.show()
 plt.close()
+
+
+
+data_param_file={}
+bla=input("continue the param_writing")
+""" saving output into diff file"""
+for p_name, p_value in out.params.items():
+    # important, otherwise expr will not work anymore!
+    print(p_name, p_value)
+    if pars[p_name].vary:
+        if p_name not in data_param_file:
+            print(p_name, p_value, "inner loop")
+            data_param_file[p_name] = {}
+            data_param_file[p_name]["value"] = 0
+        data_param_file[p_name]["value"] = p_value
+param_file_type.dump(data_param_file, open("updated_test_param."+param_file_type_str, "w"))
