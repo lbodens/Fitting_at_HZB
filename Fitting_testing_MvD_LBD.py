@@ -355,7 +355,7 @@ def peak_eval_fkt(param_file_type):
     return pars, mod, p4fit, init
 
 """------------------fkt to show spectra with init peaks------------------------------------------"""
-"""------------------fkt to show spectra with init peaks------------------------------------------"""
+
 def choose_spectra_to_plot():
     spectra_to_plot = int(input("please enter the spectra which you want to be shown\n"))
     return spectra_to_plot
@@ -415,7 +415,7 @@ def plot_checking():
 
 
 """--------------------general commands like: spectra merging & peak types--------------------------""" #TODO putting all of this at a good/practical/reasonable place in the code (like where it really starts and then it calls all the functions)
-#taking the wanted spectra and merge them into one long                      <-- TODO: somehow the append doesn´t work anymore. also the dat needs to be updatet etc. this is the next/last step when going into multiple dimensions
+#taking the wanted spectra and merge them into one long
 folder_or_file=folder_or_file()
 path, file_type, txt, skip_rows= folder_or_file
 

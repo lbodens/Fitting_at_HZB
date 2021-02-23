@@ -6,7 +6,19 @@
 #	- Fitting_testung_MvdM_LBD.py and 
 # 	- test_param.json/yaml
 #
-# the goal of this fitting script is, that you can fit multiple spectra at once with an active(!) shirely BG. you can choose, what type of peak you want to fit as well (Voigt, Gauss, etc) as long they are in the lmfit package (might need to include them into the mainscript once)
-# Furthermore is it writte, so that you do not need to change the code!!!! every input will be asked and answered via command line/terminal. So you do not ruin it by accident.
-# 
-# in the test_param, you can input starting parameters of your fit in the example style. It  doesn´t matter if you use the yaml or json file/type. What ever you preffer. 
+# The goal of this fitting script is, that you can fit multiple spectra at once with an active(!) shirely BG. 
+#  --> One shirley BG per peak each, which changes with the change of the peak during fitting aswell. 
+# The code is written the way, that noone needs to touch it! Everything necessary is asked from the code and the only input is via cmd. So you do not ruin it by accident. ;)
+# You can choose:
+# 	- what type of peak you want to fit (Voigt, Gauss, etc) as long they are in the lmfit package (might need to include them into the mainscript once, or just talk to me and i´ll do it)
+# 	- how many spectra you want to fit
+#	- what kind of files you want to use
+#		- a single file with all spectra inside it in diff columns
+#		- multiple (all!) files in one folder
+# 	- if you are using BE or KE as the energy. If KE: the code asks you for the exertation energy and claculates the BE automatically 
+#
+#	- also you can pre-set parameters (like before with the excel sheet). done in test_param.json/.yaml
+#		- It  doesn´t matter if you use the yaml or json file/type. What ever style you preffer. 
+#
+# furthermore gives the code you the opportunity to check your previous param input for the spectra you want. If you are unhappy with them, change them in the test_param file
+# and the new params will be updated.  
