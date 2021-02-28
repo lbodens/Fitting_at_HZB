@@ -27,7 +27,7 @@ mpl.rcParams.update({'font.size': 16})
 """-------------------------------------------------------Import the data file------------------------------------------------------------"""
 
 def select_txt_or_dat():
-    txt_or_dat = input("are you using .txt files or .dat files? Please enter 'txt' or 'dat'")
+    txt_or_dat = input("are you using .txt files or .dat files? Please enter 'txt' or 'dat'\n")
     if txt_or_dat == "txt":
         txt = ".txt"
     if txt_or_dat == "dat":
@@ -39,13 +39,13 @@ def folder_or_file():
     folder_or_file = input("If you want to use a single file please enter 'file'. If you want to use multiple files, please enter 'folder'\n")
     if folder_or_file =="file":
         type="file"
-        file_path = input("Please enter the complete file path (incl the filde_name w/o the .txt/dat")
+        file_path = input("Please enter the complete file path (incl the filde_name w/o the .txt/dat\n")
         txt=select_txt_or_dat()
         skip_row_nr = input("Please enter number of rows above incl the heaader line ('E S00 S01' or what ever the header is)\n")
         return file_path, type, txt, skip_row_nr
     if folder_or_file == "folder":
         type="folder"
-        folder_path = input("Please enter the folder path to the files")
+        folder_path = input("Please enter the folder path to the files\n")
         txt=select_txt_or_dat()
         skip_row_nr = input("Please enter number of rows above incl the headder line ('# Energy Kinetic' or what ever the header is)\n")
         return folder_path,type,txt, skip_row_nr
@@ -173,40 +173,33 @@ def build_curve_from_peaks(i, idx, n_spectra=1):
 
     return model
 
-def param_updater(param_file_type):
+def param_updater(param_file_type,param_file_name):
     if param_file_type == "yaml":
         param_file_type = yaml
         param_file_type_str = "yaml"
     if param_file_type == "json":
         param_file_type = json
         param_file_type_str = "json"
-    params = param_file_type.load(open('test_param.' +param_file_type_str), Loader=param_file_type.FullLoader)
+    params = param_file_type.load(open('test_param.' + param_file_type_str), Loader=param_file_type.FullLoader)
     pars = lmfit.Parameters()
     for name, rest in params.items():
         pars.add(lmfit.Parameter(name=name, **rest))
     return pars
 
+
 def shirley_param_calc(pars):
-    p4fit_d = {}
-    for idx in range(0, int(number_of_peaks)):
-        for i in range(int(number_of_spectra)):
-            p4fit_d[f'p{i}_{idx}'] = mod_d[f'mod{i}_{idx}'].make_params()
     for i in range(int(number_of_spectra)):
         yraw = d[f'dat_{i}']["Spectra"]
         deltas = (yraw[len(yraw) - 1] - yraw[0])
-        p4fit_d[f'p{i}_0'].add(f'p{i}_0_low', value=yraw[0])
+        pars.add(f'p{i}_0_low', value=yraw[0])
         for idx in range(int(number_of_peaks)):
-            p4fit_d[f'p{i}_{idx}'][f'p{i}_{idx}_center'].set(value=pars[f'p{i}_{idx}_center'].value)  # TODO: make it more general (using the vars which one want to give not generic ones) --> through list?
-            p4fit_d[f'p{i}_{idx}'][f'p{i}_{idx}_amplitude'].set(value=pars[f'p{i}_{idx}_amplitude'].value)
-            p4fit_d[f'p{i}_{idx}'][f'p{i}_{idx}_sigma'].set(value=pars[f'p{i}_{idx}_sigma'].value)
-            p4fit_d[f'p{i}_{idx}'][f'p{i}_{idx}_gamma'].set(value=pars[f'p{i}_{idx}_gamma'].value)
 
-            p4fit_d[f'p{i}_{idx}'].add(f'p{i}_{idx}_delta', value=deltas / int(number_of_peaks), min=0)
+            pars.add(f'p{i}_{idx}_delta', value=deltas / int(number_of_peaks), min=0)
             if idx > 0:
-                p4fit_d[f'p{i}_{idx}'][f'p{i}_{idx}_low'].set(value=0, vary=False)
-            p4fit_d[f'p{i}_{idx}'][f'p{i}_{idx}_high'].set(expr=f'p{i}_{idx}_low+p{i}_{idx}_delta')
-            print(p4fit_d[f'p{i}_{idx}'][f'p{i}_{idx}_high'])
-    return p4fit_d
+                pars.add(f'p{i}_{idx}_low', value=0, vary=False)
+            pars.add(f'p{i}_{idx}_high', expr=f'p{i}_{idx}_low+p{i}_{idx}_delta')
+            print(pars[f'p{i}_{idx}_high'])
+    return pars
 
 
 """------------------fkt to show spectra with init peaks------------------------------------------"""
@@ -225,7 +218,7 @@ def check_if_peak_inport_is_good():
         return check_shown_peak_input
 
 def peak_eval_fkt(param_file_type):
-    pars = param_updater(param_file_type)
+    pars = param_updater(param_file_type,param_file_name)
     mod, p4fit = shirley_param_calc(pars)
     init = mod.eval(x=x, params=p4fit)
     return pars, mod, p4fit, init
@@ -297,7 +290,6 @@ def param_per_spectra_sorting_fkt(p4fit):
     p4fit_di={}
     for i in range(int(number_of_spectra)):
         p4fit_di[f"spectra_{i}"] = {}
-    k=0
     for idx in range(int(number_of_peaks)):
         for i in range(int(number_of_spectra)):
             for name in p4fit:
@@ -305,13 +297,13 @@ def param_per_spectra_sorting_fkt(p4fit):
                     p4fit_di[f'spectra_{i}'][f"{name}"]= p4fit[name]
     return p4fit_di
 
-def param_merger_from_per_peak_fkt(p4fit_d):
+"""def param_merger_from_per_peak_fkt(p4fit_d):
     p4fit = p4fit_d[f"p0_0"]
     print(type(p4fit_d[f"p0_0"]))
     for idx in range(int(number_of_peaks)):
         for i in range(int(number_of_spectra)):
             p4fit=p4fit + p4fit_d[f"p{i}_{idx}"]
-    return p4fit
+    return p4fit"""
 
 def model_eval_fit_fkt(params):
     model_eval=np.array([[0.0] * len(d[f'dat_0']["Spectra"])] * (number_of_spectra))
@@ -327,13 +319,13 @@ def model_eval_fitted_fkt(params):
             model_eval[i] = model_eval[i] + mod_d[f'mod{i}_{idx}'].eval(x=np.array(x), params=params[f'spectra_{i}'])
     return model_eval
 
-def fitting_over_all_spectra(p4fit, x, d):
+"""def fitting_over_all_spectra(p4fit, x, d):
     y_d, resid = y_for_fit(d)
     p4fit_d = param_per_peak_sorting_fkt(p4fit)
     model_eval= model_eval_fit_fkt(p4fit_d)
     for i in range(int(number_of_spectra)):
         resid[i, :] = y_d[i,:] - model_eval[i,:]
-    return resid.flatten()
+    return resid.flatten()"""
 
 
 
@@ -395,22 +387,24 @@ if peak_type == "Lorentz":
 
 """---------------Importing previous parameter file and check imputs ----------------------"""
 param_file_type = input("please enter if you are using 'yaml' or 'json'")
-pars= param_updater(param_file_type)
+param_file_name = input("please enter the name of the parameter file")
+pars= param_updater(param_file_type,param_file_name)
 
 mod_d = {}
 for idx in range(0, int(number_of_peaks)):
     for i in range(int(number_of_spectra)):
         mod_d[f'mod{i}_{idx}'] = build_curve_from_peaks(i, idx, number_of_spectra)
 
-p4fit_d = shirley_param_calc(pars)
+pars_new=pars.copy()
+p4fit=shirley_param_calc_test(pars_new)
+p4fit_s_d=param_per_spectra_sorting_fkt(p4fit)
+p4fit_p_d=param_per_peak_sorting_fkt(p4fit)
 
-plot_checking()
+#plot_checking()
 
 """--------------------------------------actual fitting fkt------------------------------------------------"""
 x = d[f'dat_0']["E"].to_numpy()
 
-model_eval = model_eval_fit_fkt(p4fit_d)
-p4fit_pars = param_merger_from_per_peak_fkt(p4fit_d)
 
 out = minimize(fitting_over_all_spectra, p4fit_pars, args=(x, d), max_nfev=1000)
 
