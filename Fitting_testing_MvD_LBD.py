@@ -319,13 +319,95 @@ def model_eval_fitted_fkt(params):
             model_eval[i] = model_eval[i] + mod_d[f'mod{i}_{idx}'].eval(x=np.array(x), params=params[f'spectra_{i}'])
     return model_eval
 
-"""def fitting_over_all_spectra(p4fit, x, d):
+def fitting_over_all_spectra(p4fit, x, d):
     y_d, resid = y_for_fit(d)
     p4fit_d = param_per_peak_sorting_fkt(p4fit)
     model_eval= model_eval_fit_fkt(p4fit_d)
     for i in range(int(number_of_spectra)):
         resid[i, :] = y_d[i,:] - model_eval[i,:]
-    return resid.flatten()"""
+    return resid.flatten()
+
+"""--------------------------------- plotting the fitted fkt´s"""
+
+def matches_str(key,pattern):
+    return pattern.search(key)
+
+
+def param_per_peak_from_spec_sorting_fkt(p4fit):
+    p4fit_out_p_d = {}
+    for i in range(int(number_of_spectra)):
+        for idx in range(int(number_of_peaks)):
+            pattern = re.compile(f"p{i}_{idx}.*")
+            for k, v in p4fit[f'spectra_{i}'].items():
+                if matches_str(k,pattern):
+                    p4fit_out_p_d[k] = v
+
+    p4fit_p_p_d={}
+    for i in range(int(number_of_spectra)):
+        for idx in range(int(number_of_peaks)):
+            p4fit_p_p_d[f'p{i}_{idx}'] = {}
+            for name in p4fit_out_p_d:
+                if f'p{i}_{idx}_' in name:
+                    p4fit_p_p_d[f'p{i}_{idx}'][f"{name}"] = p4fit_out_p_d[name]
+    return p4fit_p_p_d
+
+def model_w_only_peaks_p_spec_d():
+    mod_w_only_peaks_p_spec_d = {}
+    for i in range(int(number_of_spectra)):
+        mod_p_p_i = peak_func(prefix=f'p{i}_0_')
+        for idx in range(1, int(number_of_peaks)):
+            mod_p_p_i = mod_p_p_i + peak_func(prefix=f'p{i}_{idx}_')
+        mod_w_only_peaks_p_spec_d[f'spectra_{i}'] = mod_p_p_i
+    return mod_w_only_peaks_p_spec_d
+
+def model_w_only_peaks_p_spec_eval_d(mod_w_only_peaks_p_spec_d, out_params):
+    mod_w_only_peaks_p_spec_d_eval = {}
+    for i in range(int(number_of_spectra)):
+        for idx in range(int(number_of_peaks)):
+            mod_w_only_peaks_p_spec_d_eval[f"spectra_{i}"] = pd.DataFrame()
+
+    for i in range(int(number_of_spectra)):
+        mod_w_only_peaks_p_spec_d_eval[f'spectra_{i}'] = mod_w_only_peaks_p_spec_d[f'spectra_{i}'].eval(x=np.array(x),
+                params=out_params[f"spectra_{i}"])
+    return mod_w_only_peaks_p_spec_d_eval
+
+def shirley_BG_only_eval_fkt(model_d,mod_w_only_peaks_p_spec_d_eval):
+    shirley_BG_d = {}
+    for i in range(int(number_of_spectra)):
+        shirley_BG_d[f"spectra_{i}"] = model_d[i] - mod_w_only_peaks_p_spec_d_eval[f'spectra_{i}']
+    return shirley_BG_d
+
+def model_w_only_peaks_fkt():
+    mod_w_only_peaks_p_p_d = {}
+    for i in range(int(number_of_spectra)):
+        for idx in range(int(number_of_peaks)):
+            mod_w_only_peaks_p_p_d[f'p{i}_{idx}'] = peak_func(prefix=f'p{i}_{idx}_')
+    return mod_w_only_peaks_p_p_d
+
+def model_w_only_peaks_eval_fkt(mod_w_only_peaks_p_p_d, p4fit_p_p_d):
+    mod_w_only_peaks_p_p_d_eval = {}
+    for i in range(int(number_of_spectra)):
+        model_eval_df = pd.DataFrame()
+        for idx in range(int(number_of_peaks)):
+            model_eval_df[f"p_{idx}"] = []
+        mod_w_only_peaks_p_p_d_eval[f"spectra_{i}"] = model_eval_df
+
+    for i in range(int(number_of_spectra)):
+        for idx in range(int(number_of_peaks)):
+            mod_w_only_peaks_p_p_d_eval[f'spectra_{i}'][f'p_{idx}'] = mod_w_only_peaks_p_p_d[f'p{i}_{idx}'].eval(
+                x=np.array(x), params=p4fit_p_p_d[f'p{i}_{idx}'])
+
+    return mod_w_only_peaks_p_p_d_eval
+
+def model_w_sBG_plus_peaks_p_p_eval_d(shirley_BG_d,mod_w_only_peaks_p_p_d_eval):
+    mod_w_sBG_peaks_p_p_d_eval={}
+    for i in range(int(number_of_spectra)):
+        mod_w_sBG_peaks_p_p_d_eval[f'spectra_{i}']={}
+        for idx in range(int(number_of_peaks)):
+            mod_w_sBG_peaks_p_p_d_eval[f'spectra_{i}'][f'p_{idx}'] = shirley_BG_d[f"spectra_{i}"]+mod_w_only_peaks_p_p_d_eval[f'spectra_{i}'][f'p_{idx}']
+    return mod_w_sBG_peaks_p_p_d_eval
+
+
 
 
 
@@ -412,16 +494,37 @@ out_params= param_per_spectra_sorting_fkt(out.params)
 model_d_fitted = model_eval_fitted_fkt(out_params)
 report_fit(out.params)
 
+
+"""-------------plotting the fitted spectra------------------------------"""
+
+p4fit_p_p_d=param_per_peak_from_spec_sorting_fkt(out_params)
+mod_w_only_peaks_p_spec_d =model_w_only_peaks_p_spec_d()
+mod_w_only_peaks_p_spec_d_eval =model_w_only_peaks_p_spec_eval_d(mod_w_only_peaks_p_spec_d, out_params)
+shirley_BG_d =shirley_BG_only_eval_fkt(model_d_fitted,mod_w_only_peaks_p_spec_d_eval)
+
+mod_w_only_peaks_p_p_d = model_w_only_peaks_fkt()
+mod_w_only_peaks_p_p_d_eval = model_w_only_peaks_eval_fkt(mod_w_only_peaks_p_p_d, p4fit_p_p_d)
+mod_w_sBG_peaks_p_p_d_eval = model_w_sBG_plus_peaks_p_p_eval_d(shirley_BG_d,mod_w_only_peaks_p_p_d_eval)
+
+
 y_d, resid = y_for_fit(d)
-fig, axes = plt.subplots()
-axes.plot(x, y_d[0], 'black',label='data')
-axes.plot(x, y_d[1], 'r',label='data')
-axes.plot(x, model_eval[0], 'b',label='start values')
-axes.plot(x, model_eval[1], 'g',label='start values')
-axes.plot(x, model_d_fitted[0], 'grey',label='fit')
-axes.plot(x, model_d_fitted[1], 'y',label='fit')
+
+#choose one of the two
+# fig, axes = plt.subplots(3, 4, figsize=(12.8, 4.8))
+fig, axs = plt.subplots(1, 2, figsize=(15, 8), sharex=True, sharey=True)
+for i, axes in enumerate(axs.flat):
+    axes.plot(x, y_d[i], 'black', label='data')
+    # axes.plot(x, model_eval[i], 'b', label='start values')                    # envelope of init peaks
+    axes.plot(x, model_d_fitted[i], 'r', label='fit')                           # envelope of fitted peaks
+    # axes.plot(x, shirley_BG_mod_eval_d[f"spectra_{i}"], 'g--' , label='shirley')          # shirely of init pars
+    axes.plot(x, shirley_BG_d[f"spectra_{i}"], 'g--' , label='shirley')                     # shirley of fitted peaks
+    for idx in range(int(number_of_peaks)):
+        # axes.plot(x, mod_w_only_peaks_p_spec_d_eval[f'spectra_{i}'], label=f"peak_{idx}")
+        # for i in range(int(number_of_spectra)):
+        #  axes.plot(x, mod_d_w_sBG_d_eval[f'spectra_{i}'][f'p_{idx}'], label=f"peak_{idx}")        # every peak w/shirley init pars
+        axes.plot(x, mod_w_sBG_peaks_p_p_d_eval[f'spectra_{i}'][f'p_{idx}'], label=f"peak_{idx}")   #every fitted peak + shirley sum
+
 plt.legend(loc='best')
-plt.show()
 
 
 """-------------------------------------------------Exporting Data-----------------------------------------------------------"""
