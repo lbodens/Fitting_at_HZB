@@ -1,539 +1,61 @@
-import numpy as np
-from numpy import array, linspace, arange, zeros, ceil, amax, amin, argmax, argmin, abs
-from numpy.linalg import norm
-import pandas as pd
-from pandas import DataFrame
-import scipy as sp
-from scipy.optimize import leastsq
-from tkinter import filedialog
-from tkinter import *
 import matplotlib as mpl
-import matplotlib.pyplot as plt
-import re, os, fnmatch, sys, functools
-import yaml, json, lmfit
-import lmfit.models
-from lmfit import minimize, Parameters, report_fit
-from lmfit.models import ExponentialModel, GaussianModel, VoigtModel, LinearModel, ConstantModel, StepModel, \
-    ExpressionModel, LorentzianModel
-import glob
-import time
-import math
+import sys
+from Data_loader import *
+from Shirley_fkt_build import *
+from Param_updater import *
+from Plotting_before_fit import *
+from Fitting_functions import *
+from Plotting_after_fitting import *
 
 namespace = sys._getframe(0).f_globals
 plt.style.use('seaborn-ticks')
 mpl.rcParams.update({'font.size': 16})
 
 
-"""-------------------------------------------------------Import the data file------------------------------------------------------------"""
 
-def select_txt_or_dat():
-    txt_or_dat = input("are you using .txt files or .dat files? Please enter 'txt' or 'dat'\n")
-    if txt_or_dat == "txt":
-        txt = ".txt"
-    if txt_or_dat == "dat":
-        txt = ".dat"
-    return txt
+"""-----------------here all the functions from the other files are called and executed-----------------------"""
+# loading the data into a df d
+d, number_of_spectra = df_creator_main_fkt()
 
-def folder_or_file():
-    print("Do you want to use a single file with all spectra in one or multiple ones (all files in one folder)?")
-    folder_or_file = input("If you want to use a single file please enter 'file'. If you want to use multiple files, please enter 'folder'\n")
-    if folder_or_file =="file":
-        type="file"
-        file_path = input("Please enter the complete file path (incl the filde_name w/o the .txt/dat\n")
-        txt=select_txt_or_dat()
-        skip_row_nr = input("Please enter number of rows above incl the heaader line ('E S00 S01' or what ever the header is)\n")
-        return file_path, type, txt, skip_row_nr
-    if folder_or_file == "folder":
-        type="folder"
-        folder_path = input("Please enter the folder path to the files\n")
-        txt=select_txt_or_dat()
-        skip_row_nr = input("Please enter number of rows above incl the headder line ('# Energy Kinetic' or what ever the header is)\n")
-        return folder_path,type,txt, skip_row_nr
+#just to plot once for an overview
+plot_1st_spectra_for_overview(d)
 
-def BE_or_KE_fkt():
-    BE_or_KE_check = False
-    while BE_or_KE_check == False:
-        choice_input = input(
-            "Is the following energy scale in binding (BE) or kinetic (KE)? please enter 'BE' for binding or 'KE' for kinetic\n")
-        if choice_input == "KE":
-            exertation_energy = float(input("Please enter the exertation energy (in eV). like 1486.7\n"))
-            BE_or_KE = "KE"
-            BE_or_KE_check = True
-        elif choice_input == "BE":
-            exertation_energy = 0
-            BE_or_KE = "BE"
-            BE_or_KE_check = True
-        else:
-            print("\nError, please type in 'BE' or 'KE'\n")
-            BE_or_KE_check = False
+# building the Models (peak + shirley) and save it as df
+mod_d, number_of_peaks, peak_func = peak_model_build_main_fkt(d, number_of_spectra)
 
-    return BE_or_KE, exertation_energy
+#Importing previous parameter file and check inputs
+p4fit, p4fit_s_d, p4fit_p_d, param_file_type = param_updater_main_fkt(d, number_of_spectra, number_of_peaks)
 
-def energy_test_fkt(d):
-    dat_E = d["dat_0"]["E"]
-    if dat_E[0] > dat_E[len(dat_E) - 1]:
-        print("The data energy was decreasing instead of increasing. Therefore the data got swapped\n")
-        for i in range(int(number_of_spectra)):
-            d["dat_%i" % i] = d["dat_%i" % i][::-1]
-            d["dat_%i" % i] = d["dat_%i" % i].reset_index(drop=True)
-    return d
 
-def dat_merger_single_file_fkt(file_path, skip_rows, number_of_spectra):
-    df = pd.read_csv(file_path + txt, skiprows=skip_rows, delim_whitespace=True, header=None)
-    d={}
-    BE_or_KE, exertation_energy  = BE_or_KE_fkt()
-
-    for i in range(int(number_of_spectra)):
-        d["dat_%i"%i]=pd.DataFrame(columns=["E", "Spectra"])
-        if BE_or_KE == "BE":
-            d["dat_%i"%i]["E"] = df.iloc[:, 0]
-        if BE_or_KE == "KE":
-            d["dat_%i" % i]["E"] = df.iloc[:, 0] - exertation_energy
-        d["dat_%i" % i]["Spectra"] = df.iloc[:, i+1]
-
-    d = energy_test_fkt(d)
-    return d
-
-def dat_merger_multiple_files_fkt(folder_path, skip_rows, number_of_spectra):
-    txt_files = glob.glob(folder_path + "*" + txt)
-    BE_or_KE, exertation_energy = BE_or_KE_fkt()
-
-    d={}
-    for i in range(int(number_of_spectra)):
-        df = pd.read_csv(txt_files[i], skiprows=skip_rows, delim_whitespace=True, header=None)
-        d["dat_%i" % i] = pd.DataFrame(columns=["E", "Spectra"])
-        if BE_or_KE == "BE":
-            d["dat_%i" % i]["E"] = df.iloc[:, 0]
-        if BE_or_KE == "KE":
-            d["dat_%i" % i]["E"] = df.iloc[:, 0] - exertation_energy
-        d["dat_%i" % i]["Spectra"] = df.iloc[:, 1]
-
-    d = energy_test_fkt(d)
-    return d
-"""-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
-
-"""------------------------------------Check, if the input is correct or not/catch it if its wrong ------------------------------------------------------------"""
-def correct_input_fkt(Input):
-    print("\nThe input:")
-    print(Input)
-    print("seem to be incorrect.\nYou seem to have misspelled the type or it is not included.\nPlease try again: ")
-    return False
-"""-----------------------------------------------------------------------------------------------------------------------------------------------------------"""
-
-"""----------------------------------------------------------------------------------------------------------------------------------------"""
-"""--------------------------------------------------------XPS peak fitting----------------------------------------------------------------"""
-"""----------------------------------------------------------------------------------------------------------------------------------------"""
-
-"""--------------Peak fit models----------------"""
-from lmfit.models import GaussianModel          
-#parameters amplitude, center, sigma
-# f(x:A, mu, sigma) =(A/sigma*sqrt(2*pi))*exp(-(x-mu)^2/(2*sigma*2))
-#fwhm = 2*sigma*swrt(2*ln(2))
-#prefix = "Gaus_"
-
-from lmfit.models import LorentzianModel        
-#amplitude, center, sigma
-# f(x:A, mu, sigma) = (A/pi)*(sigma/((x-mu)^2+sigma^2))
-#prefix = "Loren_"
-
-from lmfit.models import VoigtModel             
-#parameters amplitude, center, sigma, gamma
-#Default gamma = sigma, then fwhm = 3.6013*sigma
-# f(x:A, mu, sigma, gamma) = A*RE(w(z))/(sigma*sqrt(2*pi))
-# z = (x - mu + i*gamma)/(sigma*sqrt(2))
-# w(z) = exp(-z^2)*erfc(-i*z)
-#prefix = "Voigt_"
-
-from lmfit.models import DoniachModel
-#parameters amplitude, center, sigma, gamma
-# f(x:A, mu, sigma, gamma)
-#prefix = "DS_"
-
-"""----------------------------------------------------------------------------------------------------------------------------------------"""
-"""------------------------------------------------------Shirley background fit------------------------------------------------------------"""
-"""----------------------------------------------------------------------------------------------------------------------------------------"""
-def shirley_bg(x, low=0., high=.1):
-    return low, high
-
-def create_bg(left, right):
-    low, high = right
-    cumsum = np.cumsum(left)
-    return left + low + (high - low) * (cumsum / cumsum[-1])
-
-def build_curve_from_peaks(i, idx, n_spectra=1):
-    model = None
-    prefix = f'p{i}_{idx}_'
-    peak = peak_func(prefix=prefix)
-    bg = lmfit.Model(shirley_bg, prefix=prefix)
-    comp = lmfit.CompositeModel(peak, bg, create_bg)
-    if model:
-        model += comp
-    else:
-        model = comp
-
-    return model
-
-def param_updater(param_file_type,param_file_name):
-    if param_file_type == "yaml":
-        param_file_type = yaml
-        param_file_type_str = "yaml"
-    if param_file_type == "json":
-        param_file_type = json
-        param_file_type_str = "json"
-    params = param_file_type.load(open('test_param.' + param_file_type_str), Loader=param_file_type.FullLoader)
-    pars = lmfit.Parameters()
-    for name, rest in params.items():
-        pars.add(lmfit.Parameter(name=name, **rest))
-    return pars
-
-
-def shirley_param_calc(pars):
-    for i in range(int(number_of_spectra)):
-        yraw = d[f'dat_{i}']["Spectra"]
-        deltas = (yraw[len(yraw) - 1] - yraw[0])
-        pars.add(f'p{i}_0_low', value=yraw[0])
-        for idx in range(int(number_of_peaks)):
-
-            pars.add(f'p{i}_{idx}_delta', value=deltas / int(number_of_peaks), min=0)
-            if idx > 0:
-                pars.add(f'p{i}_{idx}_low', value=0, vary=False)
-            pars.add(f'p{i}_{idx}_high', expr=f'p{i}_{idx}_low+p{i}_{idx}_delta')
-            print(pars[f'p{i}_{idx}_high'])
-    return pars
-
-
-"""------------------fkt to show spectra with init peaks------------------------------------------"""
-
-def choose_spectra_to_plot():
-    spectra_to_plot = int(input("please enter the spectra which you want to be shown\n"))
-    return spectra_to_plot
-
-def check_if_peak_inport_is_good():
-    check_shown_peak_input = input("Are these init parameters good enough? please enter 'yes'/'y' or 'no'/'n':\n")
-    if check_shown_peak_input == "yes" or check_shown_peak_input == "y":
-        check_shown_peak_input = True
-        return check_shown_peak_input
-    else:
-        check_shown_peak_input = False
-        return check_shown_peak_input
-
-def peak_eval_fkt(param_file_type):
-    pars = param_updater(param_file_type,param_file_name)
-    mod, p4fit = shirley_param_calc(pars)
-    init = mod.eval(x=x, params=p4fit)
-    return pars, mod, p4fit, init
-
-def plotting(x, spectra_to_plot,number_of_peaks):
-    pars, mod, p4fit, init = peak_eval_fkt(param_file_type)
-    fig, axes = plt.subplots()
-    x = dat["E"].to_numpy()
-    yraw = dat["Spectra"].to_numpy()
-    axes.plot(x, yraw, 'b')
-    axes.plot(x, init, 'k--', label='initial fit')
-    plt.xlim([min(x) + (int(spectra_to_plot) - 1) * 10000, max(x) + (int(spectra_to_plot) - 1) * 10000])
-    plt.show()
-
-def plot_checking():
-    spectra_to_plot_bool = False
-    are_pre_params_good_bool = False
-    spectra_to_plot = choose_spectra_to_plot()
-    while spectra_to_plot_bool == False and are_pre_params_good_bool == False:
-        while are_pre_params_good_bool == False:
-            plotting(x, spectra_to_plot, number_of_peaks)
-            are_pre_params_good_bool = check_if_peak_inport_is_good()
-            if are_pre_params_good_bool == True:
-                plt.close()
-                continue
-            if are_pre_params_good_bool == False:
-                plt.close()
-                print("Please change the paramter to the desired one\n")
-                continue
-        while spectra_to_plot_bool == False:
-            other_spectra_check = input("do you want to check other spectra as well?\n")
-            if other_spectra_check == "yes" or other_spectra_check == "y":
-                spectra_to_plot = choose_spectra_to_plot()
-                spectra_to_plot_bool = False
-                are_pre_params_good_bool = False
-                break
-            if other_spectra_check == "no" or other_spectra_check == "n":
-                spectra_to_plot_bool = True
-                continue
-
-"""-------------------------------------------------------------------------"""
-
-"""-----------------------------------------------------------------------------------------------------------------"""
-################################### the fitting starts here ##########################################################
-"""-----------------------------------------------------------------------------------------------------------------"""
-
-def y_for_fit(d):
-    y_d = np.array([[0.0] * len(d[f'dat_0']["Spectra"])] * (number_of_spectra))
-    resid = np.array([[0.0] * len(d[f'dat_0']["Spectra"])] * (int(number_of_spectra)))
-    for i in range(int(number_of_spectra)):
-        for j in range(len(d["dat_0"]["E"])):
-            dat_holder = d[f'dat_{i}']
-            y_d[i][j] = dat_holder["Spectra"][j]
-    return y_d, resid
-
-def param_per_peak_sorting_fkt(p4fit):
-    p4fit_di={}
-    for idx in range(int(number_of_peaks)):
-        for i in range(int(number_of_spectra)):
-            p4fit_di[f"p{i}_{idx}"] = {}
-    for idx in range(int(number_of_peaks)):
-        for i in range(int(number_of_spectra)):
-            for name in p4fit:
-                if f'p{i}_{idx}_' in name:
-                    p4fit_di[f'p{i}_{idx}'][f"{name}"]= p4fit[name]
-    return p4fit_di
-
-def param_per_spectra_sorting_fkt(p4fit):
-    p4fit_di={}
-    for i in range(int(number_of_spectra)):
-        p4fit_di[f"spectra_{i}"] = {}
-    for idx in range(int(number_of_peaks)):
-        for i in range(int(number_of_spectra)):
-            for name in p4fit:
-                if f'p{i}_{idx}_' in name:
-                    p4fit_di[f'spectra_{i}'][f"{name}"]= p4fit[name]
-    return p4fit_di
-
-"""def param_merger_from_per_peak_fkt(p4fit_d):
-    p4fit = p4fit_d[f"p0_0"]
-    print(type(p4fit_d[f"p0_0"]))
-    for idx in range(int(number_of_peaks)):
-        for i in range(int(number_of_spectra)):
-            p4fit=p4fit + p4fit_d[f"p{i}_{idx}"]
-    return p4fit"""
-
-def model_eval_fit_fkt(params):
-    model_eval=np.array([[0.0] * len(d[f'dat_0']["Spectra"])] * (number_of_spectra))
-    for idx in range(int(number_of_peaks)):
-        for i in range(int(number_of_spectra)):
-            model_eval[i] = model_eval[i] + mod_d[f'mod{i}_{idx}'].eval(x=np.array(x), params=params[f"p{i}_{idx}"])
-    return model_eval
-
-def model_eval_fitted_fkt(params):
-    model_eval=np.array([[0.0] * len(d[f'dat_0']["Spectra"])] * (number_of_spectra))
-    for idx in range(int(number_of_peaks)):
-        for i in range(int(number_of_spectra)):
-            model_eval[i] = model_eval[i] + mod_d[f'mod{i}_{idx}'].eval(x=np.array(x), params=params[f'spectra_{i}'])
-    return model_eval
-
-def fitting_over_all_spectra(p4fit, x, d):
-    y_d, resid = y_for_fit(d)
-    p4fit_d = param_per_peak_sorting_fkt(p4fit)
-    model_eval= model_eval_fit_fkt(p4fit_d)
-    for i in range(int(number_of_spectra)):
-        resid[i, :] = y_d[i,:] - model_eval[i,:]
-    return resid.flatten()
-
-"""--------------------------------- plotting the fitted fkt´s"""
-
-def matches_str(key,pattern):
-    return pattern.search(key)
-
-
-def param_per_peak_from_spec_sorting_fkt(p4fit):
-    p4fit_out_p_d = {}
-    for i in range(int(number_of_spectra)):
-        for idx in range(int(number_of_peaks)):
-            pattern = re.compile(f"p{i}_{idx}.*")
-            for k, v in p4fit[f'spectra_{i}'].items():
-                if matches_str(k,pattern):
-                    p4fit_out_p_d[k] = v
-
-    p4fit_p_p_d={}
-    for i in range(int(number_of_spectra)):
-        for idx in range(int(number_of_peaks)):
-            p4fit_p_p_d[f'p{i}_{idx}'] = {}
-            for name in p4fit_out_p_d:
-                if f'p{i}_{idx}_' in name:
-                    p4fit_p_p_d[f'p{i}_{idx}'][f"{name}"] = p4fit_out_p_d[name]
-    return p4fit_p_p_d
-
-def model_w_only_peaks_p_spec_d():
-    mod_w_only_peaks_p_spec_d = {}
-    for i in range(int(number_of_spectra)):
-        mod_p_p_i = peak_func(prefix=f'p{i}_0_')
-        for idx in range(1, int(number_of_peaks)):
-            mod_p_p_i = mod_p_p_i + peak_func(prefix=f'p{i}_{idx}_')
-        mod_w_only_peaks_p_spec_d[f'spectra_{i}'] = mod_p_p_i
-    return mod_w_only_peaks_p_spec_d
-
-def model_w_only_peaks_p_spec_eval_d(mod_w_only_peaks_p_spec_d, out_params):
-    mod_w_only_peaks_p_spec_d_eval = {}
-    for i in range(int(number_of_spectra)):
-        for idx in range(int(number_of_peaks)):
-            mod_w_only_peaks_p_spec_d_eval[f"spectra_{i}"] = pd.DataFrame()
-
-    for i in range(int(number_of_spectra)):
-        mod_w_only_peaks_p_spec_d_eval[f'spectra_{i}'] = mod_w_only_peaks_p_spec_d[f'spectra_{i}'].eval(x=np.array(x),
-                params=out_params[f"spectra_{i}"])
-    return mod_w_only_peaks_p_spec_d_eval
-
-def shirley_BG_only_eval_fkt(model_d,mod_w_only_peaks_p_spec_d_eval):
-    shirley_BG_d = {}
-    for i in range(int(number_of_spectra)):
-        shirley_BG_d[f"spectra_{i}"] = model_d[i] - mod_w_only_peaks_p_spec_d_eval[f'spectra_{i}']
-    return shirley_BG_d
-
-def model_w_only_peaks_fkt():
-    mod_w_only_peaks_p_p_d = {}
-    for i in range(int(number_of_spectra)):
-        for idx in range(int(number_of_peaks)):
-            mod_w_only_peaks_p_p_d[f'p{i}_{idx}'] = peak_func(prefix=f'p{i}_{idx}_')
-    return mod_w_only_peaks_p_p_d
-
-def model_w_only_peaks_eval_fkt(mod_w_only_peaks_p_p_d, p4fit_p_p_d):
-    mod_w_only_peaks_p_p_d_eval = {}
-    for i in range(int(number_of_spectra)):
-        model_eval_df = pd.DataFrame()
-        for idx in range(int(number_of_peaks)):
-            model_eval_df[f"p_{idx}"] = []
-        mod_w_only_peaks_p_p_d_eval[f"spectra_{i}"] = model_eval_df
-
-    for i in range(int(number_of_spectra)):
-        for idx in range(int(number_of_peaks)):
-            mod_w_only_peaks_p_p_d_eval[f'spectra_{i}'][f'p_{idx}'] = mod_w_only_peaks_p_p_d[f'p{i}_{idx}'].eval(
-                x=np.array(x), params=p4fit_p_p_d[f'p{i}_{idx}'])
-
-    return mod_w_only_peaks_p_p_d_eval
-
-def model_w_sBG_plus_peaks_p_p_eval_d(shirley_BG_d,mod_w_only_peaks_p_p_d_eval):
-    mod_w_sBG_peaks_p_p_d_eval={}
-    for i in range(int(number_of_spectra)):
-        mod_w_sBG_peaks_p_p_d_eval[f'spectra_{i}']={}
-        for idx in range(int(number_of_peaks)):
-            mod_w_sBG_peaks_p_p_d_eval[f'spectra_{i}'][f'p_{idx}'] = shirley_BG_d[f"spectra_{i}"]+mod_w_only_peaks_p_p_d_eval[f'spectra_{i}'][f'p_{idx}']
-    return mod_w_sBG_peaks_p_p_d_eval
-
-
-
-
-
-"""--------------------general commands like: spectra merging & peak types--------------------------""" #TODO putting all of this at a good/practical/reasonable place in the code (like where it really starts and then it calls all the functions)
-#taking the wanted spectra and merge them into one long
-folder_or_file = folder_or_file()
-path, file_type, txt, skip_rows = folder_or_file
-
-number_of_spectra = input("please enter the number of spectra you want to fit\n")
-if file_type == "file":
-    d = dat_merger_single_file_fkt(path, int(skip_rows), int(number_of_spectra))
-if file_type == "folder":
-    d = dat_merger_multiple_files_fkt(path,int(skip_rows),int(number_of_spectra))
-
-
-#plotting the first spectra to get better overview
-fig, axes = plt.subplots()
-axes.plot(d["dat_0"]["E"], d["dat_0"]["Spectra"], 'b')
-plt.xlim([min(d["dat_0"]["E"]), max(d["dat_0"]["E"])])
-print("Now a plot of the 1st spectra is shown, that you can quickly look if you want to change some pre set parameters. Close it to continue")
-plt.show()
-plt.close()
-
-
-#creating wanted number and types of peaks
-number_of_peaks = input("please enter the number of peaks you want to use for fitting\n")
-select_peak_type = False
-while select_peak_type == False:
-    peak_type = input("please enter the type of peak you are using.\n e.G. Voigt, Gauss, Lorentz")
-    if peak_type.lower() == "voigt":
-        peak_type == "Voigt"
-        select_peak_type == True
-        peak_func = lmfit.models.VoigtModel
-        break
-    if peak_type.lower() == "gauss":
-        peak_type == "Gauss"
-        select_peak_type == True
-        peak_func = lmfit.models.GaussianModel
-        break
-    if peak_type.lower() == "lorentz":
-        peak_type == "Lorentz"
-        select_peak_type == True
-        peak_func = lmfit.models.LorentzianModel
-        break
-   # if peak_type.lower() == ???:                                           TODO: include more peak types
-        #    peak_func = lmfit.models.???Model
-    else:
-        select_peak_type = correct_input_fkt(peak_type)
-
-if peak_type == "Voigt":
-   attribute_nr = 6
-if peak_type == "Gauss":
-   attribute_nr = 5
-if peak_type == "Lorentz":
-   attribute_nr = 5
-#if peak_type =="???"                       TODO
-#    attribute_nr = ???
-"""-----------------------------------------------------------------------------"""
-
-"""---------------Importing previous parameter file and check imputs ----------------------"""
-param_file_type = input("please enter if you are using 'yaml' or 'json'")
-param_file_name = input("please enter the name of the parameter file")
-pars= param_updater(param_file_type,param_file_name)
-
-mod_d = {}
-for idx in range(0, int(number_of_peaks)):
-    for i in range(int(number_of_spectra)):
-        mod_d[f'mod{i}_{idx}'] = build_curve_from_peaks(i, idx, number_of_spectra)
-
-pars_new=pars.copy()
-p4fit=shirley_param_calc_test(pars_new)
-p4fit_s_d=param_per_spectra_sorting_fkt(p4fit)
-p4fit_p_d=param_per_peak_sorting_fkt(p4fit)
-
-#plot_checking()
+#plot selected spectra with the selected starting parameters, which then can be updated
+#plot_checking()    TODO
 
 """--------------------------------------actual fitting fkt------------------------------------------------"""
 x = d[f'dat_0']["E"].to_numpy()
-
-
-out = minimize(fitting_over_all_spectra, p4fit_pars, args=(x, d), max_nfev=1000)
-
-out_params= param_per_spectra_sorting_fkt(out.params)
-model_d_fitted = model_eval_fitted_fkt(out_params)
-report_fit(out.params)
-
+nfev = int(input("How many max iterations do you want to use? Please insert a number here:"))
+out, out_params, model_d_fitted, y_d = fitting_function_main_fkt(d, p4fit, x, mod_d, number_of_spectra, number_of_peaks, nfev)
 
 """-------------plotting the fitted spectra------------------------------"""
 
-p4fit_p_p_d=param_per_peak_from_spec_sorting_fkt(out_params)
-mod_w_only_peaks_p_spec_d =model_w_only_peaks_p_spec_d()
-mod_w_only_peaks_p_spec_d_eval =model_w_only_peaks_p_spec_eval_d(mod_w_only_peaks_p_spec_d, out_params)
-shirley_BG_d =shirley_BG_only_eval_fkt(model_d_fitted,mod_w_only_peaks_p_spec_d_eval)
-
-mod_w_only_peaks_p_p_d = model_w_only_peaks_fkt()
-mod_w_only_peaks_p_p_d_eval = model_w_only_peaks_eval_fkt(mod_w_only_peaks_p_p_d, p4fit_p_p_d)
-mod_w_sBG_peaks_p_p_d_eval = model_w_sBG_plus_peaks_p_p_eval_d(shirley_BG_d,mod_w_only_peaks_p_p_d_eval)
-
-
-y_d, resid = y_for_fit(d)
-
-#choose one of the two
-# fig, axes = plt.subplots(3, 4, figsize=(12.8, 4.8))
-fig, axs = plt.subplots(1, 2, figsize=(15, 8), sharex=True, sharey=True)
-for i, axes in enumerate(axs.flat):
-    axes.plot(x, y_d[i], 'black', label='data')
-    # axes.plot(x, model_eval[i], 'b', label='start values')                    # envelope of init peaks
-    axes.plot(x, model_d_fitted[i], 'r', label='fit')                           # envelope of fitted peaks
-    # axes.plot(x, shirley_BG_mod_eval_d[f"spectra_{i}"], 'g--' , label='shirley')          # shirely of init pars
-    axes.plot(x, shirley_BG_d[f"spectra_{i}"], 'g--' , label='shirley')                     # shirley of fitted peaks
-    for idx in range(int(number_of_peaks)):
-        # axes.plot(x, mod_w_only_peaks_p_spec_d_eval[f'spectra_{i}'], label=f"peak_{idx}")
-        # for i in range(int(number_of_spectra)):
-        #  axes.plot(x, mod_d_w_sBG_d_eval[f'spectra_{i}'][f'p_{idx}'], label=f"peak_{idx}")        # every peak w/shirley init pars
-        axes.plot(x, mod_w_sBG_peaks_p_p_d_eval[f'spectra_{i}'][f'p_{idx}'], label=f"peak_{idx}")   #every fitted peak + shirley sum
-
-plt.legend(loc='best')
+fit_loop = False
+while fit_loop == False:
+    plotting_after_fitting_main_fkt(x, out_params, model_d_fitted, y_d, peak_func, d, number_of_spectra,
+                                    number_of_peaks)
+    fit_qualtity_test=input("Is the fit good enough? \nIf yes please enter 'yes'/'y'. if Not enter #/'n':\n")
+    if fit_qualtity_test.lower() == ("yes" or "y"):
+        fit_loop = True
+        break
+    if fit_qualtity_test.lower() == ("no" or "n"):
+        print("please update the starting parameters then")
+        #insert plot per single peaks of coice here TODO
+        out, out_params, model_d_fitted, y_d = fitting_function_main_fkt(d, p4fit, x, mod_d, number_of_spectra,
+                                                                         number_of_peaks)
 
 
 """-------------------------------------------------Exporting Data-----------------------------------------------------------"""
-Header=['eV', 'raw count', 'Overall fit', 'BGND' 'v1', 'v2', 'v3']
-
-
 
 """ saving output into diff file"""
-data_param_file={}
+"""data_param_file={}
 for p_name, p_value in out.params.items():
     # important, otherwise expr will not work anymore!
     print(p_name, p_value)
@@ -544,7 +66,7 @@ for p_name, p_value in out.params.items():
             data_param_file[p_name]["value"] = 0
         data_param_file[p_name]["value"] = p_value
 param_file_type.dump(data_param_file, open("updated_test_param."+param_file_type_str, "w"))
-
+"""
 
 
 

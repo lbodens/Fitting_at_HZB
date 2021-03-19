@@ -3,8 +3,15 @@
 #This code is writen by MvdM and LBD with great help of Will and Flo!
 
 # the main files are the 
-#	- Fitting_testung_MvdM_LBD.py and 
+#	- Fitting_testung_MvdM_LBD.py 		(Main file which then calls all the others)
+#   - Data_loader.py 					(where the data is loaded into a df)
+#   - Shirley_fkt_biuld.py 				(creates the peak + shirley model)
+#   - Param_updater.py					(takes the preset parameter from the testparam.json/yaml and upüdates the parameter)
 # 	- test_param.json/yaml
+#   - Plotting_before_fit.py			
+#   - Fitting_functions.py
+# 	- Plotting_after_fitting.py
+#
 #
 # The goal of this fitting script is, that you can fit multiple spectra at once with an active(!) shirely BG. 
 #  --> One shirley BG per peak each, which changes with the change of the peak during fitting aswell. 
