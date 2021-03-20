@@ -47,13 +47,14 @@ def fitting_over_all_spectra(p4fit, x, d, mod_d, y_d, resid, number_of_spectra, 
 
 
 
+
+
 def fitting_function_main_fkt(d, p4fit, x, mod_d, number_of_spectra, number_of_peaks, nfev):
     print("starting fitting")
     y_d, resid = y_for_fit(d, number_of_spectra, number_of_peaks)
     out = minimize(fitting_over_all_spectra, p4fit, args=(x, d, mod_d,y_d, resid, number_of_spectra, number_of_peaks), max_nfev=nfev)
     print("end fitting")
     out_params = param_per_spectra_sorting_fkt(out.params, number_of_spectra, number_of_peaks)
-    model_d_fitted = model_eval_fitted_fkt(out_params, mod_d, d,x, number_of_spectra, number_of_peaks)
     report_fit(out.params)
 
-    return out, out_params, model_d_fitted, y_d
+    return out, out_params, y_d

@@ -3,9 +3,9 @@ import sys
 from Data_loader import *
 from Shirley_fkt_build import *
 from Param_updater import *
-from Plotting_before_fit import *
+from Param_check_via_plotting import *
 from Fitting_functions import *
-from Plotting_after_fitting import *
+from Plotting_functions import *
 
 namespace = sys._getframe(0).f_globals
 plt.style.use('seaborn-ticks')
@@ -24,23 +24,29 @@ plot_1st_spectra_for_overview(d)
 mod_d, number_of_peaks, peak_func = peak_model_build_main_fkt(d, number_of_spectra)
 
 #Importing previous parameter file and check inputs
-p4fit, p4fit_s_d, p4fit_p_d, param_file_type = param_updater_main_fkt(d, number_of_spectra, number_of_peaks)
+param_file_type = input("please enter if you are using 'yaml' or 'json':\n")
+param_file_name = input("please enter the name of the parameter file:\n")
+p4fit, p4fit_s_d, p4fit_p_d = param_updater_main_fkt(d,param_file_type, param_file_name, number_of_spectra, number_of_peaks)
 
 
 #plot selected spectra with the selected starting parameters, which then can be updated
-#plot_checking()    TODO
+x = d[f'dat_0']["E"].to_numpy()
+y_d, resid = y_for_fit(d, number_of_spectra, number_of_peaks)
+pre_param_check = input("Now you can check the pre-set parameters. If you don´t want to do that, enter 'yes'/'y'?")
+if pre_param_check.lower() == ("yes" or "y"):
+    params_via_plot_checking(x,d, y_d, mod_d,peak_func, param_file_type, param_file_name,number_of_spectra, number_of_peaks)
+
 
 """--------------------------------------actual fitting fkt------------------------------------------------"""
-x = d[f'dat_0']["E"].to_numpy()
 nfev = int(input("How many max iterations do you want to use? Please insert a number here:"))
-out, out_params, model_d_fitted, y_d = fitting_function_main_fkt(d, p4fit, x, mod_d, number_of_spectra, number_of_peaks, nfev)
+out, out_params,  y_d = fitting_function_main_fkt(d, p4fit, x, mod_d, number_of_spectra, number_of_peaks, nfev)
 
 """-------------plotting the fitted spectra------------------------------"""
 
+
 fit_loop = False
 while fit_loop == False:
-    plotting_after_fitting_main_fkt(x, out_params, model_d_fitted, y_d, peak_func, d, number_of_spectra,
-                                    number_of_peaks)
+    plotting_subplots_main_fkt(x, out_params, mod_d, y_d, peak_func, d, number_of_spectra, number_of_peaks)
     fit_qualtity_test=input("Is the fit good enough? \nIf yes please enter 'yes'/'y'. if Not enter #/'n':\n")
     if fit_qualtity_test.lower() == ("yes" or "y"):
         fit_loop = True

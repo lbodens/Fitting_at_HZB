@@ -1,13 +1,15 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                   in this file plots with the pre-set parameters from Param_updater are                              #
-#                   fitted. You can choose the spectra to plot aswell (TODO)                                           #
+#                   in this file the preselected parameter are checked.                                                #
+#                   If one wants to change them, bc they don´t look good enough, then they can                         #
+#                   update them and look at the plot again. You can choose the spectra to plot aswell                  #
 #                                                                                                                      #
 ########################################################################################################################
 
 
 import matplotlib.pyplot as plt
-from Param_updater import *
+from Param_updater import param_updater_main_fkt
+from Plotting_functions import model_separator_eval_fkt, plotting_fit_single_plot_fkt
 
 
 
@@ -15,14 +17,7 @@ def choose_spectra_to_plot():
     spectra_to_plot = int(input("please enter the spectra which you want to be shown\n"))
     return spectra_to_plot
 
-def plot_1st_spectra_for_overview(d):
-    fig, axes = plt.subplots()
-    axes.plot(d["dat_0"]["E"], d["dat_0"]["Spectra"], 'b')
-    plt.xlim([min(d["dat_0"]["E"]), max(d["dat_0"]["E"])])
-    print(
-        "Now a plot of the 1st spectra is shown, that you can quickly look if you want to change some pre set parameters. Close it to continue")
-    plt.show()
-    plt.close()
+
 
 def check_if_peak_inport_is_good():
     check_shown_peak_input = input("Are these init parameters good enough? please enter 'yes'/'y' or 'no'/'n':\n")
@@ -33,29 +28,18 @@ def check_if_peak_inport_is_good():
         check_shown_peak_input = False
         return check_shown_peak_input
 
-def peak_eval_fkt(param_file_type):
-    pars = param_updater(param_file_type,param_file_name)
-    mod, p4fit = shirley_param_calc(pars)
-    init = mod.eval(x=x, params=p4fit)
-    return pars, mod, p4fit, init
 
-def plotting(x, spectra_to_plot,number_of_peaks):
-    pars, mod, p4fit, init = peak_eval_fkt(param_file_type)
-    fig, axes = plt.subplots()
-    x = dat["E"].to_numpy()
-    yraw = dat["Spectra"].to_numpy()
-    axes.plot(x, yraw, 'b')
-    axes.plot(x, init, 'k--', label='initial fit')
-    plt.xlim([min(x) + (int(spectra_to_plot) - 1) * 10000, max(x) + (int(spectra_to_plot) - 1) * 10000])
-    plt.show()
-
-def plot_checking():
+def params_via_plot_checking(x,d, y_d, mod_d,peak_func, param_file_type, param_file_name,number_of_spectra, number_of_peaks) :
     spectra_to_plot_bool = False
     are_pre_params_good_bool = False
     spectra_to_plot = choose_spectra_to_plot()
     while spectra_to_plot_bool == False and are_pre_params_good_bool == False:
         while are_pre_params_good_bool == False:
-            plotting(x, spectra_to_plot, number_of_peaks)
+
+            p4fit, p4fit_s_d, p4fit_p_d = param_updater_main_fkt(d,param_file_type, param_file_name, number_of_spectra, number_of_peaks)
+            mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval= model_separator_eval_fkt(p4fit_s_d, mod_d, d, peak_func, x, number_of_spectra, number_of_peaks)
+            plotting_fit_single_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval,number_of_peaks, spectra_to_plot)
+
             are_pre_params_good_bool = check_if_peak_inport_is_good()
             if are_pre_params_good_bool == True:
                 plt.close()

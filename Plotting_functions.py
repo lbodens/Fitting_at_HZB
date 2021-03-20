@@ -1,9 +1,11 @@
 ########################################################################################################################
 #                                                                                                                      #
-#               in this file plots with fitted parameters are generated.                                               #
-#               For this the peak parameter are sorted, and the Models are evaluated                                   #
+#               in this file all plots are generated.                                                                  #
+#               The peak parameter [spectra_{i}] are sorted to [p{i}_{idx}] and the models get evaluated               #
 #               (with and w/o the shirley, which then gets subtracted to get the single shirley as well                #
-#               Also can one choose if he wants to see multiple spectra at the same time (and how many)                #
+#                                                                                                                      #
+#               There are the 3 plot functions written as well. The subplots are for after fitting                     #
+#               for better overview. Note: the other functions are used in the script before!                          #
 #                                                                                                                      #
 ########################################################################################################################
 
@@ -36,6 +38,14 @@ def param_per_peak_from_spec_sorting_fkt(p4fit, number_of_spectra, number_of_pea
                 if f'p{i}_{idx}_' in name:
                     p4fit_p_p_d[f'p{i}_{idx}'][f"{name}"] = p4fit_out_p_d[name]
     return p4fit_p_p_d
+
+def model_eval_fkt(params, mod_d, d,x, number_of_spectra, number_of_peaks):
+    model_eval=np.array([[0.0] * len(d[f'dat_0']["Spectra"])] * (int(number_of_spectra)))
+    for idx in range(int(number_of_peaks)):
+        for i in range(int(number_of_spectra)):
+            model_eval[i] = model_eval[i] + mod_d[f'mod{i}_{idx}'].eval(x=np.array(x), params=params[f'spectra_{i}'])
+    return model_eval
+
 
 def model_w_only_peaks_p_spec_d(peak_func, number_of_spectra, number_of_peaks):
     mod_w_only_peaks_p_spec_d = {}
@@ -93,21 +103,36 @@ def model_w_sBG_plus_peaks_p_p_eval_d(shirley_BG_d,mod_w_only_peaks_p_p_d_eval, 
             mod_w_sBG_peaks_p_p_d_eval[f'spectra_{i}'][f'p_{idx}'] = shirley_BG_d[f"spectra_{i}"]+mod_w_only_peaks_p_p_d_eval[f'spectra_{i}'][f'p_{idx}']
     return mod_w_sBG_peaks_p_p_d_eval
 
-
-def model_eval_after_fitting_fkt(out_params, model_d_fitted, peak_func, x, number_of_spectra, number_of_peaks):
-    p4fit_p_p_d=param_per_peak_from_spec_sorting_fkt(out_params, number_of_spectra, number_of_peaks)
+#this is where all the magic appends and the models are called etc
+def model_separator_eval_fkt(params_s_d, mod_d, d, peak_func, x, number_of_spectra, number_of_peaks):
+    #this calculates the single parts for the plotting. 1st: sorts the out params in right order
+    params_p_d=param_per_peak_from_spec_sorting_fkt(params_s_d, number_of_spectra, number_of_peaks)
+    mod_d_eval = model_eval_fkt(params_s_d, mod_d, d,x, number_of_spectra, number_of_peaks)
+    # 2nd generates a model of all peaks per spectra w/o the shirley BG, so that when it is subtracted from the total spectra onyl the shirely is left
     mod_w_only_peaks_p_spec_d = model_w_only_peaks_p_spec_d(peak_func, number_of_spectra, number_of_peaks)
-    mod_w_only_peaks_p_spec_d_eval = model_w_only_peaks_p_spec_eval_d(mod_w_only_peaks_p_spec_d, out_params,x, number_of_spectra, number_of_peaks)
-    shirley_BG_d = shirley_BG_only_eval_fkt(model_d_fitted, mod_w_only_peaks_p_spec_d_eval, number_of_spectra)
+    mod_w_only_peaks_p_spec_d_eval = model_w_only_peaks_p_spec_eval_d(mod_w_only_peaks_p_spec_d, params_s_d,x, number_of_spectra, number_of_peaks)
+    shirley_BG_d = shirley_BG_only_eval_fkt(mod_d_eval, mod_w_only_peaks_p_spec_d_eval, number_of_spectra)
 
+    #creates model with only single peaks, where then the shirley is added ontop
     mod_w_only_peaks_p_p_d = model_w_only_peaks_fkt(peak_func, number_of_spectra, number_of_peaks)
-    mod_w_only_peaks_p_p_d_eval = model_w_only_peaks_eval_fkt(mod_w_only_peaks_p_p_d, p4fit_p_p_d,x, number_of_spectra, number_of_peaks)
+    mod_w_only_peaks_p_p_d_eval = model_w_only_peaks_eval_fkt(mod_w_only_peaks_p_p_d, params_p_d,x, number_of_spectra, number_of_peaks)
     mod_w_sBG_peaks_p_p_d_eval = model_w_sBG_plus_peaks_p_p_eval_d(shirley_BG_d, mod_w_only_peaks_p_p_d_eval, number_of_spectra, number_of_peaks)
-    return shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval
+    return mod_d_eval,shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval
 
 
 
-def plotting_after_fit_subplots(x, y_d, model_d_fitted, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval,number_of_peaks, x_nr_of_subplt, y_nr_of_subplt):
+'''----------------------here all 3 plot functiosn are written-->change here to make them more pretty--------------'''
+def plot_1st_spectra_for_overview(d):
+    fig, axes = plt.subplots()
+    axes.plot(d["dat_0"]["E"], d["dat_0"]["Spectra"], 'b')
+    plt.xlim([min(d["dat_0"]["E"]), max(d["dat_0"]["E"])])
+    print(
+        "Now a plot of the 1st spectra is shown, that you can quickly look if you want to change some pre set parameters. Close it to continue")
+    plt.xlim([max(d["dat_0"]["E"]), min(d["dat_0"]["E"])])
+    plt.show()
+    plt.close()
+
+def plotting_fit_subplots(x, y_d, model_d_fitted, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval,number_of_peaks, x_nr_of_subplt, y_nr_of_subplt):
     fig, axs = plt.subplots(y_nr_of_subplt, x_nr_of_subplt, figsize=(15, 8), sharex=True, sharey=True)
     for i, axes in enumerate(axs.flat):
         axes.plot(x, y_d[i], 'black', label='data')
@@ -116,16 +141,31 @@ def plotting_after_fit_subplots(x, y_d, model_d_fitted, shirley_BG_d, mod_w_sBG_
             axes.plot(x, mod_w_sBG_peaks_p_p_d_eval[f'spectra_{i}'][f'p_{idx}'],
                       label=f"peak_{idx}")  # every fitted peak + shirley sum
         axes.plot(x, shirley_BG_d[f"spectra_{i}"], 'grey--', label='shirley')  # shirley of fitted peaks
+    plt.xlim([max(x), min(x)])
+    plt.legend(loc='best')
+    plt.show()
+
+def plotting_fit_single_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval,number_of_peaks, spectra_to_plot):
+    fig, axs = plt.subplots()
+    axs.plot(x, y_d[spectra_to_plot], 'black', label='data')
+    axs.plot(x, mod_d_eval[spectra_to_plot], 'r', label='fit')  # envelope of fitted peaks
+    for idx in range(int(number_of_peaks)):
+        axs.plot(x, mod_w_sBG_peaks_p_p_d_eval[f'spectra_{spectra_to_plot}'][f'p_{idx}'],
+                      label=f"peak_{idx}")  # every fitted peak + shirley sum
+    axs.plot(x, shirley_BG_d[f"spectra_{spectra_to_plot}"], color = 'grey', linestyle='dashed', label='shirley')  # shirley of fitted peaks
+    plt.xlim([max(x), min(x)])
     plt.legend(loc='best')
     plt.show()
 
 
-def plotting_after_fitting_main_fkt(x, out_params, model_d_fitted, y_d, peak_func, d, number_of_spectra, number_of_peaks):
-    shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval= model_eval_after_fitting_fkt(out_params, model_d_fitted, peak_func,x, number_of_spectra, number_of_peaks)
+
+
+def plotting_subplots_main_fkt(x, pAfit_s_d, mod_d, y_d, peak_func, d, number_of_spectra, number_of_peaks):
+    mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval= model_separator_eval_fkt(pAfit_s_d, mod_d, d, peak_func, x, number_of_spectra, number_of_peaks)
 
     x_nr_of_subplt = int(input("please enter the number of plots you want to see in x-direction"))
     y_nr_of_subplt = int(input("please enter the number of plots you want to see in y-direction"))
-    plotting_after_fit_subplots(x, y_d, model_d_fitted, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval, number_of_peaks,
+    plotting_fit_subplots(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval, number_of_peaks,
                                 x_nr_of_subplt, y_nr_of_subplt)
 
 
