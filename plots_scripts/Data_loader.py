@@ -22,13 +22,13 @@ def select_txt_or_dat():
 def folder_or_file_fkt():
     print("Do you want to use a single file with all spectra in one or multiple ones (all files in one folder)?")
     folder_or_file = input("If you want to use a single file please enter 'file'. If you want to use multiple files, please enter 'folder'\n")
-    if folder_or_file =="file":
+    if folder_or_file.lower() =="file" or folder_or_file.lower() == "files":
         type="file"
         file_path = input("Please enter the complete file path (incl the filde_name w/o the .txt/dat\n")
         txt=select_txt_or_dat()
         skip_row_nr = input("Please enter number of rows above incl the heaader line ('E S00 S01' or what ever the header is)\n")
         return file_path, type, txt, skip_row_nr
-    if folder_or_file == "folder":
+    if folder_or_file.lower() == "folder":
         type="folder"
         folder_path = input("Please enter the folder path to the files\n")
         txt=select_txt_or_dat()
@@ -40,11 +40,11 @@ def BE_or_KE_fkt():
     while BE_or_KE_check == False:
         choice_input = input(
             "Is the following energy scale in binding (BE) or kinetic (KE)? please enter 'BE' for binding or 'KE' for kinetic\n")
-        if choice_input == "KE":
+        if choice_input.lower() == "ke":
             exertation_energy = float(input("Please enter the exertation energy (in eV). like 1486.7\n"))
             BE_or_KE = "KE"
             BE_or_KE_check = True
-        elif choice_input == "BE":
+        elif choice_input.lower() == "be":
             exertation_energy = 0
             BE_or_KE = "BE"
             BE_or_KE_check = True
@@ -102,7 +102,7 @@ def df_creator_main_fkt():
     path, file_type, txt, skip_rows = folder_or_file
 
     number_of_spectra = input("please enter the number of spectra you want to fit\n")
-    if file_type == "file":
+    if file_type == "file" :
         d = dat_merger_single_file_fkt(path, int(skip_rows), int(number_of_spectra), txt)
     if file_type == "folder":
         d = dat_merger_multiple_files_fkt(path,int(skip_rows),int(number_of_spectra),txt)

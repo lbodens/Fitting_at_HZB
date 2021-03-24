@@ -11,7 +11,7 @@
 
 import numpy as np
 from lmfit import minimize, Parameters, report_fit
-from Param_updater import param_per_peak_sorting_fkt, param_per_spectra_sorting_fkt
+from plots_scripts.Param_updater import param_per_peak_sorting_fkt, param_per_spectra_sorting_fkt
 
 
 

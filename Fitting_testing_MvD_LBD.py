@@ -1,11 +1,11 @@
 import matplotlib as mpl
 import sys
-from Data_loader import *
-from Shirley_fkt_build import *
-from Param_updater import *
-from Param_check_via_plotting import *
-from Fitting_functions import *
-from Plotting_functions import *
+from plots_scripts.Data_loader import *
+from plots_scripts.Shirley_fkt_build import *
+from plots_scripts.Param_updater import *
+from plots_scripts.Param_check_via_plotting import *
+from plots_scripts.Fitting_functions import *
+from plots_scripts.Plotting_functions import *
 
 namespace = sys._getframe(0).f_globals
 plt.style.use('seaborn-ticks')
@@ -33,8 +33,11 @@ p4fit, p4fit_s_d, p4fit_p_d = param_updater_main_fkt(d,param_file_type, param_fi
 x = d[f'dat_0']["E"].to_numpy()
 y_d, resid = y_for_fit(d, number_of_spectra, number_of_peaks)
 pre_param_check = input("Now you can check the pre-set parameters. If you don´t want to do that, enter 'yes'/'y'?")
-if pre_param_check.lower() == ("yes" or "y"):
+if pre_param_check.lower() == "yes" or pre_param_check.lower() =="y":
+    print("sucess")
     params_via_plot_checking(x,d, y_d, mod_d,peak_func, param_file_type, param_file_name,number_of_spectra, number_of_peaks)
+else:
+    print("no sucess")
 
 
 """--------------------------------------actual fitting fkt------------------------------------------------"""
@@ -47,17 +50,18 @@ out, out_params,  y_d = fitting_function_main_fkt(d, p4fit, x, mod_d, number_of_
 fit_loop = False
 while fit_loop == False:
     plotting_subplots_main_fkt(x, out_params, mod_d, y_d, peak_func, d, number_of_spectra, number_of_peaks)
-    fit_qualtity_test=input("Is the fit good enough? \nIf yes please enter 'yes'/'y'. if Not enter #/'n':\n")
-    if fit_qualtity_test.lower() == ("yes" or "y"):
+    fit_qualtity_test=input("Is the fit good enough? \nIf yes please enter 'yes'/'y'. if Not enter 'no'/'n':\n")
+    if fit_qualtity_test.lower() == "yes" or fit_qualtity_test.lower()=="y":
         fit_loop = True
         break
-    if fit_qualtity_test.lower() == ("no" or "n"):
-        print("please update the starting parameters then")
-        #insert plot per single peaks of coice here TODO
-        out, out_params, model_d_fitted, y_d = fitting_function_main_fkt(d, p4fit, x, mod_d, number_of_spectra,
-                                                                         number_of_peaks)
+    if fit_qualtity_test.lower() == "no" or fit_qualtity_test.lower()== "n":
 
+        print("Now a small loop sections will run, where you can check all init parameters via plots again.")
+        nfev = int(input("So please update the starting parameters. Furthermore: update the max iterations do you want to use here:"))
+        params_via_plot_checking(x, d, y_d, mod_d, peak_func, param_file_type, param_file_name, number_of_spectra, number_of_peaks)
+        out, out_params, y_d = fitting_function_main_fkt(d, p4fit, x, mod_d, number_of_spectra, number_of_peaks,nfev)
 
+print(out_params)
 """-------------------------------------------------Exporting Data-----------------------------------------------------------"""
 
 """ saving output into diff file"""

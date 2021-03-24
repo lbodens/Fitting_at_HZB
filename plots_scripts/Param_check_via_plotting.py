@@ -8,20 +8,20 @@
 
 
 import matplotlib.pyplot as plt
-from Param_updater import param_updater_main_fkt
-from Plotting_functions import model_separator_eval_fkt, plotting_fit_single_plot_fkt
+from plots_scripts.Param_updater import param_updater_main_fkt
+from plots_scripts.Plotting_functions import model_separator_eval_fkt, plotting_fit_single_plot_fkt
 
 
 
 def choose_spectra_to_plot():
-    spectra_to_plot = int(input("please enter the spectra which you want to be shown\n"))
+    spectra_to_plot = int(input("Please enter the spectra nr (0 to n-1) which you want to look at:\n"))
     return spectra_to_plot
 
 
 
 def check_if_peak_inport_is_good():
     check_shown_peak_input = input("Are these init parameters good enough? please enter 'yes'/'y' or 'no'/'n':\n")
-    if check_shown_peak_input == "yes" or check_shown_peak_input == "y":
+    if check_shown_peak_input.lower() == "yes" or check_shown_peak_input.lower() == "y":
         check_shown_peak_input = True
         return check_shown_peak_input
     else:
@@ -50,12 +50,12 @@ def params_via_plot_checking(x,d, y_d, mod_d,peak_func, param_file_type, param_f
                 continue
         while spectra_to_plot_bool == False:
             other_spectra_check = input("do you want to check other spectra as well?\n")
-            if other_spectra_check == "yes" or other_spectra_check == "y":
+            if other_spectra_check.lower() == "yes" or other_spectra_check.lower() == "y":
                 spectra_to_plot = choose_spectra_to_plot()
                 spectra_to_plot_bool = False
                 are_pre_params_good_bool = False
                 break
-            if other_spectra_check == "no" or other_spectra_check == "n":
+            if other_spectra_check.lower() == "no" or other_spectra_check.lower() == "n":
                 spectra_to_plot_bool = True
                 continue
 

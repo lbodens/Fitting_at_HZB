@@ -12,7 +12,10 @@
 
 import numpy as np
 import pandas as pd
+#import tkinter
+#import matplotlib as mpl
 import matplotlib.pyplot as plt
+#matplotlib.use('TkAgg')
 import re
 
 
@@ -130,7 +133,7 @@ def plot_1st_spectra_for_overview(d):
         "Now a plot of the 1st spectra is shown, that you can quickly look if you want to change some pre set parameters. Close it to continue")
     plt.xlim([max(d["dat_0"]["E"]), min(d["dat_0"]["E"])])
     plt.show()
-    plt.close()
+    
 
 def plotting_fit_subplots(x, y_d, model_d_fitted, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval,number_of_peaks, x_nr_of_subplt, y_nr_of_subplt):
     fig, axs = plt.subplots(y_nr_of_subplt, x_nr_of_subplt, figsize=(15, 8), sharex=True, sharey=True)
@@ -140,7 +143,7 @@ def plotting_fit_subplots(x, y_d, model_d_fitted, shirley_BG_d, mod_w_sBG_peaks_
         for idx in range(int(number_of_peaks)):
             axes.plot(x, mod_w_sBG_peaks_p_p_d_eval[f'spectra_{i}'][f'p_{idx}'],
                       label=f"peak_{idx}")  # every fitted peak + shirley sum
-        axes.plot(x, shirley_BG_d[f"spectra_{i}"], 'grey--', label='shirley')  # shirley of fitted peaks
+        axes.plot(x, shirley_BG_d[f"spectra_{i}"], color = 'grey', linestyle='dashed', label='shirley')  # shirley of fitted peaks
     plt.xlim([max(x), min(x)])
     plt.legend(loc='best')
     plt.show()

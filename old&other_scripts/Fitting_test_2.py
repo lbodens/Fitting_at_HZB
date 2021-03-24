@@ -150,7 +150,7 @@ def param_updater(param_file_type):
     if param_file_type == "json":
         param_file_type = json
         param_file_type_str = "json"
-    params = param_file_type.load(open('test_param.' +param_file_type_str), Loader=param_file_type.FullLoader)
+    params = param_file_type.load(open('test_param_C1s.' +param_file_type_str), Loader=param_file_type.FullLoader)
     pars = lmfit.Parameters()
     for name, rest in params.items():
         pars.add(lmfit.Parameter(name=name, **rest))
