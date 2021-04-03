@@ -40,29 +40,30 @@ def shirley_param_calc(pars, d, number_of_spectra, number_of_peaks):
             print(pars[f'p{i}_{idx}_high'])
     return pars
 
-def param_per_peak_sorting_fkt(p4fit,  number_of_spectra, number_of_peaks):
-    p4fit_di={}
-    for idx in range(int(number_of_peaks)):
-        for i in range(int(number_of_spectra)):
-            p4fit_di[f"p{i}_{idx}"] = {}
-    for idx in range(int(number_of_peaks)):
-        for i in range(int(number_of_spectra)):
-            for name in p4fit:
-                if f'p{i}_{idx}_' in name:
-                    p4fit_di[f'p{i}_{idx}'][f"{name}"]= p4fit[name]
-    return p4fit_di
+def param_per_peak_sorting_fkt(pars):
+    result = {}
+    p = re.compile('p[0-9]+_[0-9]+')
 
-def param_per_spectra_sorting_fkt(p4fit,  number_of_spectra, number_of_peaks):
-    p4fit_di={}
-    for i in range(int(number_of_spectra)):
-        p4fit_di[f"spectra_{i}"] = {}
-    for idx in range(int(number_of_peaks)):
-        for i in range(int(number_of_spectra)):
-            for name in p4fit:
-                if f'p{i}_{idx}_' in name:
-                    p4fit_di[f'spectra_{i}'][f"{name}"]= p4fit[name]
-    return p4fit_di
+    for name in pars:
+        prefix = p.search(name).group(0)
+        if result.get(prefix) is None:
+            result[prefix] = {}
+        result[prefix][name] = pars[name]
 
+    return result
+
+def param_per_spectra_sorting_fkt(pars):
+    result = {}
+    p = re.compile('^p[0-9]+')
+
+    for name in pars:
+        prefix = p.search(name)
+        prefix = 'spectra_' + prefix.group(0)[1:]
+        if result.get(prefix) is None:
+            result[prefix] = {}
+        result[prefix][name] = pars[name]
+
+    return result
 
 
 

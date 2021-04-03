@@ -17,7 +17,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 #matplotlib.use('TkAgg')
 import re
-
+from plots_scripts.Fitting_functions import model_eval_fitted_fkt
 
 
 
@@ -41,13 +41,6 @@ def param_per_peak_from_spec_sorting_fkt(p4fit, number_of_spectra, number_of_pea
                 if f'p{i}_{idx}_' in name:
                     p4fit_p_p_d[f'p{i}_{idx}'][f"{name}"] = p4fit_out_p_d[name]
     return p4fit_p_p_d
-
-def model_eval_fkt(params, mod_d, d,x, number_of_spectra, number_of_peaks):
-    model_eval=np.array([[0.0] * len(d[f'dat_0']["Spectra"])] * (int(number_of_spectra)))
-    for idx in range(int(number_of_peaks)):
-        for i in range(int(number_of_spectra)):
-            model_eval[i] = model_eval[i] + mod_d[f'mod{i}_{idx}'].eval(x=np.array(x), params=params[f'spectra_{i}'])
-    return model_eval
 
 
 def model_w_only_peaks_p_spec_d(peak_func, number_of_spectra, number_of_peaks):
@@ -107,10 +100,10 @@ def model_w_sBG_plus_peaks_p_p_eval_d(shirley_BG_d,mod_w_only_peaks_p_p_d_eval, 
     return mod_w_sBG_peaks_p_p_d_eval
 
 #this is where all the magic appends and the models are called etc
-def model_separator_eval_fkt(params_s_d, mod_d, d, peak_func, x, number_of_spectra, number_of_peaks):
+def model_separator_eval_fkt(params_s_d, mod_d, peak_func, x, number_of_spectra, number_of_peaks):
     #this calculates the single parts for the plotting. 1st: sorts the out params in right order
     params_p_d=param_per_peak_from_spec_sorting_fkt(params_s_d, number_of_spectra, number_of_peaks)
-    mod_d_eval = model_eval_fkt(params_s_d, mod_d, d,x, number_of_spectra, number_of_peaks)
+    mod_d_eval = model_eval_fitted_fkt(params_s_d, mod_d, x, number_of_spectra, number_of_peaks)
     # 2nd generates a model of all peaks per spectra w/o the shirley BG, so that when it is subtracted from the total spectra onyl the shirely is left
     mod_w_only_peaks_p_spec_d = model_w_only_peaks_p_spec_d(peak_func, number_of_spectra, number_of_peaks)
     mod_w_only_peaks_p_spec_d_eval = model_w_only_peaks_p_spec_eval_d(mod_w_only_peaks_p_spec_d, params_s_d,x, number_of_spectra, number_of_peaks)
@@ -163,8 +156,8 @@ def plotting_fit_single_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_pea
 
 
 
-def plotting_subplots_main_fkt(x, pAfit_s_d, mod_d, y_d, peak_func, d, number_of_spectra, number_of_peaks):
-    mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval= model_separator_eval_fkt(pAfit_s_d, mod_d, d, peak_func, x, number_of_spectra, number_of_peaks)
+def plotting_subplots_main_fkt(x, pAfit_s_d, mod_d, y_d, peak_func, number_of_spectra, number_of_peaks):
+    mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval= model_separator_eval_fkt(pAfit_s_d, mod_d, peak_func, x, number_of_spectra, number_of_peaks)
 
     x_nr_of_subplt = int(input("please enter the number of plots you want to see in x-direction"))
     y_nr_of_subplt = int(input("please enter the number of plots you want to see in y-direction"))

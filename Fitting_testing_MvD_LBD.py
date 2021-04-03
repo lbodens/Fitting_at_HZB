@@ -49,7 +49,7 @@ out, out_params,  y_d = fitting_function_main_fkt(d, p4fit, x, mod_d, number_of_
 
 fit_loop = False
 while fit_loop == False:
-    plotting_subplots_main_fkt(x, out_params, mod_d, y_d, peak_func, d, number_of_spectra, number_of_peaks)
+    plotting_subplots_main_fkt(x, out_params, mod_d, y_d, peak_func, number_of_spectra, number_of_peaks)
     fit_qualtity_test=input("Is the fit good enough? \nIf yes please enter 'yes'/'y'. if Not enter 'no'/'n':\n")
     if fit_qualtity_test.lower() == "yes" or fit_qualtity_test.lower()=="y":
         fit_loop = True
@@ -78,10 +78,12 @@ for p_name, p_value in out.params.items():
 param_file_type.dump(data_param_file, open("updated_test_param."+param_file_type_str, "w"))
 """
 
-
-
-
-
+params_to_file={}
+for idx in range(int(number_of_peaks)):
+    for i in range(int(number_of_spectra)):
+        for name in out.params:
+            params_to_file[f"{name}"]= str(out.params[name])
+param_file_type.dump(params_to_file, open("./results/param_fit_res."+param_file_type, "w"))
 
 
 
