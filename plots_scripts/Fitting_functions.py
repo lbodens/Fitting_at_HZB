@@ -24,17 +24,14 @@ def y_for_fit(d, number_of_spectra, number_of_peaks):
             y_d[i][j] = dat_holder["Spectra"][j]
     return y_d, resid
 
-def model_eval_fit_fkt(parameters, mod_d, x, number_of_spectra, number_of_peaks):
+
+def model_eval_fit_fkt(params, mod_d, x, number_of_spectra, number_of_peaks):
     result = np.array( [[0.0] * len(x)] * (int(number_of_spectra)))
 
     for idx in range(int(number_of_peaks)):
         for i in range(int(number_of_spectra)):
             loop = str(i) + '_' + str(idx)
-            
-            if idx == 0:
-                result[i] = mod_d['mod'+loop].eval(x=np.array(x), parameters=parameters['p'+loop])            
-            else:
-                result[i] = result[i] + mod_d['mod'+loop].eval(x=np.array(x), parameters=parameters['p'+loop])
+            result[i] = result[i] + mod_d['mod'+loop].eval(x=np.array(x), params=params['p'+loop])
     return result
 
 def model_eval_fitted_fkt(params, mod_d,  x, number_of_spectra, number_of_peaks):
