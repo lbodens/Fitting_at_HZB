@@ -67,32 +67,31 @@ def build_curve_from_peaks(i, idx, peak_func, n_spectra=1):
 
 def peak_model_build_main_fkt(d, Inputs, element_number):
     # creating wanted number and types of peaks
-    
     number_of_spectra = Inputs["number_of_spectra"]
-    number_of_peaks = Inputs["number_of_peaks"]
+    
+    if element_number ==0:
+        number_of_peaks = Inputs["number_of_peaks"]
+        peak_type = Inputs["peak_type"]
+    
     #only necessary, for the Input_ana.files
-    if elemental_nr >0:
+    if element_number >0:
         number_of_peaks = Inputs["el{}_number_of_peaks".format(element_number)]
+        peak_type = Inputs["el{}_peak_type".format(element_number)]
 
-    peak_type = Inputs["peak_type"]
     if peak_type.lower() == "voigt":
         peak_type == "Voigt"
-        select_peak_type == True
         peak_func = lmfit.models.VoigtModel
-        break
+
     if peak_type.lower() == "gauss":
         peak_type == "Gauss"
-        select_peak_type == True
         peak_func = lmfit.models.GaussianModel
-        break
+
     if peak_type.lower() == "lorentz":
         peak_type == "Lorentz"
-        select_peak_type == True
         peak_func = lmfit.models.LorentzianModel
-        break
+
     # if peak_type.lower() == ???:                                           TODO: include more peak types
     #    peak_func = lmfit.models.???Model
-
 
     mod_d = {}
     for idx in range(int(number_of_peaks)):

@@ -13,35 +13,35 @@ import glob
 
 
 def folder_or_file_fkt(Inputs):
+
     folder_or_file = Inputs["folder_or_file"]
+
     if folder_or_file.lower() =="file" or folder_or_file.lower() == "files":
         structure_type="file"
-        file_path = Inputs["file_path"]
+        path = Inputs["file_path"]
     if folder_or_file.lower() == "folder":
         structure_type="folder"
-        folder_path = Inputs["folder_path"]
+        path = Inputs["folder_path"]
 
     txt_or_dat= Inputs["txt_or_dat"]
     skip_row_nr = Inputs["skip_row_nr"]
-    return path, structure_type ,txt_ord_dat, skip_row_nr
 
-def BE_or_KE_fkt():
-    BE_or_KE_check = False
-    while BE_or_KE_check == False:
-        choice_input = input(
-            "Is the following energy scale in binding (BE) or kinetic (KE)? please enter 'BE' for binding or 'KE' for kinetic\n")
+    return path, structure_type ,txt_or_dat, skip_row_nr
+
+def BE_or_KE_fkt(Inputs):
+    BE_or_KE_check = True
+    while BE_or_KE_check:
+        choice_input = Inputs["BE_or_KE"]
         if choice_input.lower() == "ke":
-            exertation_energy = float(input("Please enter the exertation energy (in eV). like 1486.7\n"))
+            exertation_energy = Inputs["KE_excertation_E"]
             BE_or_KE = "KE"
-            BE_or_KE_check = True
+            BE_or_KE_check = False
+            break
         elif choice_input.lower() == "be":
             exertation_energy = 0
             BE_or_KE = "BE"
-            BE_or_KE_check = True
-        else:
-            print("\nError, please type in 'BE' or 'KE'\n")
             BE_or_KE_check = False
-
+            break
     return BE_or_KE, exertation_energy
 
 def energy_test_fkt(d, number_of_spectra):
@@ -54,11 +54,10 @@ def energy_test_fkt(d, number_of_spectra):
             d[dat_i] = d[dat_i].reset_index(drop=True)
     return d
 
-def dat_merger_single_file_fkt(file_path, skip_rows, number_of_spectra, txt):
+def dat_merger_single_file_fkt(file_path, txt, Inputs, skip_rows, number_of_spectra):
     df = pd.read_csv(file_path + txt, skiprows=skip_rows, delim_whitespace=True, header=None)
     d={}
-    BE_or_KE, exertation_energy  = BE_or_KE_fkt()
-
+    BE_or_KE, exertation_energy  = BE_or_KE_fkt(Inputs)
     for i in range(int(number_of_spectra)):
         dat_i = "dat_" + str(i)
         d[dat_i]=pd.DataFrame(columns=["E", "Spectra"])
@@ -71,9 +70,9 @@ def dat_merger_single_file_fkt(file_path, skip_rows, number_of_spectra, txt):
     d = energy_test_fkt(d, number_of_spectra)
     return d
 
-def dat_merger_multiple_files_fkt(folder_path, skip_rows, number_of_spectra, txt):
+def dat_merger_multiple_files_fkt(folder_path, txt, Inputs, skip_rows, number_of_spectra):
     txt_files = glob.glob(folder_path + "*" + txt)
-    BE_or_KE, exertation_energy = BE_or_KE_fkt()
+    BE_or_KE, exertation_energy = BE_or_KE_fkt(Inputs)
 
     d={}
     for i in range(int(number_of_spectra)):
@@ -92,11 +91,10 @@ def dat_merger_multiple_files_fkt(folder_path, skip_rows, number_of_spectra, txt
 
 def df_creator_main_fkt(Inputs):
     path, file_type, txt, skip_rows = folder_or_file_fkt(Inputs)
+    number_of_spectra = Inputs["number_of_spectra"]
 
-
-    number_of_spectra = Inputs["number_of_spectra"]  
     if file_type == "file" :
-        d = dat_merger_single_file_fkt(path, int(skip_rows), int(number_of_spectra), txt)
+        d = dat_merger_single_file_fkt(path, txt, Inputs, int(skip_rows), int(number_of_spectra))
     if file_type == "folder":
-        d = dat_merger_multiple_files_fkt(path,int(skip_rows),int(number_of_spectra),txt)
+        d = dat_merger_multiple_files_fkt(path, txt, Inputs, int(skip_rows),int(number_of_spectra))
     return d, number_of_spectra
