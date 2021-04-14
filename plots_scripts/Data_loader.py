@@ -11,29 +11,19 @@ import pandas as pd
 from pandas import DataFrame
 import glob
 
-def select_txt_or_dat():
-    txt_or_dat = input("are you using .txt files or .dat files? Please enter 'txt' or 'dat'\n")
-    if txt_or_dat == "txt":
-        txt = ".txt"
-    if txt_or_dat == "dat":
-        txt = ".dat"
-    return txt
 
-def folder_or_file_fkt():
-    print("Do you want to use a single file with all spectra in one or multiple ones (all files in one folder)?")
-    folder_or_file = input("If you want to use a single file please enter 'file'. If you want to use multiple files, please enter 'folder'\n")
+def folder_or_file_fkt(Inputs):
+    folder_or_file = Inputs["folder_or_file"]
     if folder_or_file.lower() =="file" or folder_or_file.lower() == "files":
-        type="file"
-        file_path = input("Please enter the complete file path (incl the filde_name w/o the .txt/dat\n")
-        txt=select_txt_or_dat()
-        skip_row_nr = input("Please enter number of rows above incl the heaader line ('E S00 S01' or what ever the header is)\n")
-        return file_path, type, txt, skip_row_nr
+        structure_type="file"
+        file_path = Inputs["file_path"]
     if folder_or_file.lower() == "folder":
-        type="folder"
-        folder_path = input("Please enter the folder path to the files\n")
-        txt=select_txt_or_dat()
-        skip_row_nr = input("Please enter number of rows above incl the headder line ('# Energy Kinetic' or what ever the header is)\n")
-        return folder_path,type,txt, skip_row_nr
+        structure_type="folder"
+        folder_path = Inputs["folder_path"]
+
+    txt_or_dat= Inputs["txt_or_dat"]
+    skip_row_nr = Inputs["skip_row_nr"]
+    return path, structure_type ,txt_ord_dat, skip_row_nr
 
 def BE_or_KE_fkt():
     BE_or_KE_check = False
@@ -59,8 +49,9 @@ def energy_test_fkt(d, number_of_spectra):
     if dat_E[0] > dat_E[len(dat_E) - 1]:
         print("The data energy was decreasing instead of increasing. Therefore the data got swapped\n")
         for i in range(int(number_of_spectra)):
-            d["dat_%i" % i] = d["dat_%i" % i][::-1]
-            d["dat_%i" % i] = d["dat_%i" % i].reset_index(drop=True)
+            dat_i = "dat_" + str(i)
+            d[dat_i] = d[dat_i][::-1]
+            d[dat_i] = d[dat_i].reset_index(drop=True)
     return d
 
 def dat_merger_single_file_fkt(file_path, skip_rows, number_of_spectra, txt):
@@ -69,12 +60,13 @@ def dat_merger_single_file_fkt(file_path, skip_rows, number_of_spectra, txt):
     BE_or_KE, exertation_energy  = BE_or_KE_fkt()
 
     for i in range(int(number_of_spectra)):
-        d["dat_%i"%i]=pd.DataFrame(columns=["E", "Spectra"])
+        dat_i = "dat_" + str(i)
+        d[dat_i]=pd.DataFrame(columns=["E", "Spectra"])
         if BE_or_KE == "BE":
-            d["dat_%i"%i]["E"] = df.iloc[:, 0]
+            d[dat_i]["E"] = df.iloc[:, 0]
         if BE_or_KE == "KE":
-            d["dat_%i" % i]["E"] = df.iloc[:, 0] - exertation_energy
-        d["dat_%i" % i]["Spectra"] = df.iloc[:, i+1]
+            d[dat_i]["E"] = df.iloc[:, 0] - exertation_energy
+        d[dat_i]["Spectra"] = df.iloc[:, i+1]
 
     d = energy_test_fkt(d, number_of_spectra)
     return d
@@ -86,22 +78,23 @@ def dat_merger_multiple_files_fkt(folder_path, skip_rows, number_of_spectra, txt
     d={}
     for i in range(int(number_of_spectra)):
         df = pd.read_csv(txt_files[i], skiprows=skip_rows, delim_whitespace=True, header=None)
-        d["dat_%i" % i] = pd.DataFrame(columns=["E", "Spectra"])
+        dat_i = "dat_" + str(i)
+        d[dat_i] = pd.DataFrame(columns=["E", "Spectra"])
         if BE_or_KE == "BE":
-            d["dat_%i" % i]["E"] = df.iloc[:, 0]
+            d[dat_i]["E"] = df.iloc[:, 0]
         if BE_or_KE == "KE":
-            d["dat_%i" % i]["E"] = df.iloc[:, 0] - exertation_energy
-        d["dat_%i" % i]["Spectra"] = df.iloc[:, 1]
+            d[dat_i]["E"] = df.iloc[:, 0] - exertation_energy
+        d[dat_i]["Spectra"] = df.iloc[:, 1]
 
     d = energy_test_fkt(d)
     return d
 
 
-def df_creator_main_fkt():
-    folder_or_file = folder_or_file_fkt()
-    path, file_type, txt, skip_rows = folder_or_file
+def df_creator_main_fkt(Inputs):
+    path, file_type, txt, skip_rows = folder_or_file_fkt(Inputs)
 
-    number_of_spectra = input("please enter the number of spectra you want to fit\n")
+
+    number_of_spectra = Inputs["number_of_spectra"]  
     if file_type == "file" :
         d = dat_merger_single_file_fkt(path, int(skip_rows), int(number_of_spectra), txt)
     if file_type == "folder":

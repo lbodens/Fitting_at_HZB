@@ -12,32 +12,36 @@ plt.style.use('seaborn-ticks')
 mpl.rcParams.update({'font.size': 16})
 
 
-
 """-----------------here all the functions from the other files are called and executed-----------------------"""
+input_param_file_type_str = "yaml"
+input_param_file_type = yaml
+inputs_file_name = input("please enter the name/path of the fit input file (normally Input_fit):\n")
+Inputs = input_param_file_type.load(open(inputs_file_name + "." + input_param_file_type_str), Loader=input_param_file_type.FullLoader)
+
+
+
 # loading the data into a df d
-d, number_of_spectra = df_creator_main_fkt()
+d, number_of_spectra = df_creator_main_fkt(Inputs)
 
 #just to plot once for an overview
 plot_1st_spectra_for_overview(d)
 
-# building the Models (peak + shirley) and save it as df
-mod_d, number_of_peaks, peak_func = peak_model_build_main_fkt(d, number_of_spectra)
+# building the Models (peak + shirley) and save it as df. The 0 is there, since we areusing the Input_fit.file. with the ana file, the number will be changed there
+mod_d, number_of_peaks, peak_func = peak_model_build_main_fkt(d, Inputs, 0)
 
 #Importing previous parameter file and check inputs
-param_file_type = input("please enter if you are using 'yaml' or 'json':\n")
-param_file_name = input("please enter the name of the parameter file:\n")
-p4fit, p4fit_s_d, p4fit_p_d = param_updater_main_fkt(d,param_file_type, param_file_name, number_of_spectra, number_of_peaks)
+param_file_type_str = Inputs["param_file_type_str"]
+param_file_name = Inputs["param_file_name"]
+p4fit, p4fit_s_d, p4fit_p_d , param_file_type, param_file_type_str= param_updater_main_fkt(d,param_file_type, param_file_name, number_of_spectra, number_of_peaks)
 
 
 #plot selected spectra with the selected starting parameters, which then can be updated
 x = d[f'dat_0']["E"].to_numpy()
-y_d, resid = y_for_fit(d, number_of_spectra, number_of_peaks)
+y_d, resid = y_for_fit(d, x, number_of_spectra, number_of_peaks)
 pre_param_check = input("Now you can check the pre-set parameters. If you don´t want to do that, enter 'yes'/'y'?")
 if pre_param_check.lower() == "yes" or pre_param_check.lower() =="y":
-    print("sucess")
     params_via_plot_checking(x,d, y_d, mod_d,peak_func, param_file_type, param_file_name,number_of_spectra, number_of_peaks)
-else:
-    print("no sucess")
+
 
 
 """--------------------------------------actual fitting fkt------------------------------------------------"""
@@ -77,13 +81,13 @@ for p_name, p_value in out.params.items():
         data_param_file[p_name]["value"] = p_value
 param_file_type.dump(data_param_file, open("updated_test_param."+param_file_type_str, "w"))
 """
-
+result_file_path = Inputs["fit_result_file_path"]
 params_to_file={}
 for idx in range(int(number_of_peaks)):
     for i in range(int(number_of_spectra)):
         for name in out.params:
             params_to_file[f"{name}"]= str(out.params[name])
-param_file_type.dump(params_to_file, open("./results/param_fit_res."+param_file_type, "w"))
+param_file_type.dump(params_to_file, open(result_file_path + "." + param_file_type_str, "w"))
 
 
 

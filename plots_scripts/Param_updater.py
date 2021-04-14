@@ -19,11 +19,11 @@ def param_updater(param_file_type,param_file_name):
     if param_file_type == "json":
         param_file_type = json
         param_file_type_str = "json"
-    params = param_file_type.load(open(str(param_file_name) + '.' + param_file_type_str), Loader=param_file_type.FullLoader)
+    params = param_file_type.load(open(param_file_name + '.' + param_file_type_str), Loader=param_file_type.FullLoader)
     pars = lmfit.Parameters()
     for name, rest in params.items():
         pars.add(lmfit.Parameter(name=name, **rest))
-    return pars
+    return pars, param_file_type, param_file_type_str
 
 
 def shirley_param_calc(pars, d, number_of_spectra, number_of_peaks):
@@ -68,11 +68,10 @@ def param_per_spectra_sorting_fkt(pars):
 
 
 def param_updater_main_fkt(d,param_file_type, param_file_name, number_of_spectra, number_of_peaks):
-    pars = param_updater(param_file_type, param_file_name)
+    pars, param_file_type, param_file_type_str = param_updater(param_file_type, param_file_name)
 
     pars_new = pars.copy()
     p4fit = shirley_param_calc(pars_new, d, number_of_spectra, number_of_peaks)
-    p4fit_s_d = param_per_spectra_sorting_fkt(p4fit,  number_of_spectra, number_of_peaks)
-    p4fit_p_d = param_per_peak_sorting_fkt(p4fit,  number_of_spectra, number_of_peaks)
-
-    return p4fit, p4fit_s_d, p4fit_p_d
+    p4fit_s_d = param_per_spectra_sorting_fkt(p4fit)
+    p4fit_p_d = param_per_peak_sorting_fkt(p4fit)
+    return p4fit, p4fit_s_d, p4fit_p_d, param_file_type, param_file_type_str

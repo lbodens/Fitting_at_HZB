@@ -65,40 +65,34 @@ def build_curve_from_peaks(i, idx, peak_func, n_spectra=1):
 
     return model
 
-def correct_input_fkt(Input):
-    print("\nThe input:")
-    print(Input)
-    print("seem to be incorrect.\nYou seem to have misspelled the type or it is not included.\nPlease try again: ")
-    return False
-
-
-
-
-def peak_model_build_main_fkt(d, number_of_spectra):
+def peak_model_build_main_fkt(d, Inputs, element_number):
     # creating wanted number and types of peaks
-    number_of_peaks = input("please enter the number of peaks you want to use for fitting\n")
-    select_peak_type = False
-    while select_peak_type == False:
-        peak_type = input("please enter the type of peak you are using.\n e.G. Voigt, Gauss, Lorentz")
-        if peak_type.lower() == "voigt":
-            peak_type == "Voigt"
-            select_peak_type == True
-            peak_func = lmfit.models.VoigtModel
-            break
-        if peak_type.lower() == "gauss":
-            peak_type == "Gauss"
-            select_peak_type == True
-            peak_func = lmfit.models.GaussianModel
-            break
-        if peak_type.lower() == "lorentz":
-            peak_type == "Lorentz"
-            select_peak_type == True
-            peak_func = lmfit.models.LorentzianModel
-            break
-        # if peak_type.lower() == ???:                                           TODO: include more peak types
-        #    peak_func = lmfit.models.???Model
-        else:
-            select_peak_type = correct_input_fkt(peak_type)
+    
+    number_of_spectra = Inputs["number_of_spectra"]
+    number_of_peaks = Inputs["number_of_peaks"]
+    #only necessary, for the Input_ana.files
+    if elemental_nr >0:
+        number_of_peaks = Inputs["el{}_number_of_peaks".format(element_number)]
+
+    peak_type = Inputs["peak_type"]
+    if peak_type.lower() == "voigt":
+        peak_type == "Voigt"
+        select_peak_type == True
+        peak_func = lmfit.models.VoigtModel
+        break
+    if peak_type.lower() == "gauss":
+        peak_type == "Gauss"
+        select_peak_type == True
+        peak_func = lmfit.models.GaussianModel
+        break
+    if peak_type.lower() == "lorentz":
+        peak_type == "Lorentz"
+        select_peak_type == True
+        peak_func = lmfit.models.LorentzianModel
+        break
+    # if peak_type.lower() == ???:                                           TODO: include more peak types
+    #    peak_func = lmfit.models.???Model
+
 
     mod_d = {}
     for idx in range(int(number_of_peaks)):
