@@ -21,7 +21,7 @@ Inputs = input_param_file_type.load(open(inputs_file_name + "." + input_param_fi
 
 
 # loading the data into a df d
-d, number_of_spectra = df_creator_main_fkt(Inputs)
+d, number_of_spectra = df_creator_main_fkt(Inputs, 0)
 
 #just to plot once for an overview
 plot_1st_spectra_for_overview(d)

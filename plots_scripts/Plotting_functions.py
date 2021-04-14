@@ -141,6 +141,7 @@ def plotting_fit_subplots(x, y_d, model_d_fitted, shirley_BG_d, mod_w_sBG_peaks_
     plt.legend(loc='best')
     plt.show()
 
+
 def plotting_fit_single_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval,number_of_peaks, spectra_to_plot):
     fig, axs = plt.subplots()
     axs.plot(x, y_d[spectra_to_plot], 'black', label='data')
@@ -152,8 +153,6 @@ def plotting_fit_single_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_pea
     plt.xlim([max(x), min(x)])
     plt.legend(loc='best')
     plt.show()
-
-
 
 
 def plotting_subplots_main_fkt(x, pAfit_s_d, mod_d, y_d, peak_func, number_of_spectra, number_of_peaks):

@@ -5,14 +5,12 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-
-
 import yaml, json, lmfit
 import lmfit.models
+import re
 
 
-
-def param_updater(param_file_type,param_file_name):
+def param_updater(param_file_type, param_file_name):
     if param_file_type == "yaml":
         param_file_type = yaml
         param_file_type_str = "yaml"
