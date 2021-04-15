@@ -93,7 +93,7 @@ def df_creator_main_fkt(Inputs):
     path, file_type, txt, skip_rows = folder_or_file_fkt(Inputs)
     number_of_spectra = Inputs["number_of_spectra"]
 
-    if file_type == "file" :
+    if file_type == "file":
         d = dat_merger_single_file_fkt(path, txt, Inputs, int(skip_rows), int(number_of_spectra))
     if file_type == "folder":
         d = dat_merger_multiple_files_fkt(path, txt, Inputs, int(skip_rows),int(number_of_spectra))

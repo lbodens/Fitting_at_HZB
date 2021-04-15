@@ -1,6 +1,6 @@
 ########################################################################################################################
 #                                                                                                                      #
-#                   Taking the prevoiulsy set parameters from the YAML/JSOn files and update                           #
+#                   Taking the previous set parameters from the YAML/JSOn files and update                           #
 #                   the parameters, which are created before                                                           #
 #                                                                                                                      #
 ########################################################################################################################
@@ -38,6 +38,7 @@ def shirley_param_calc(pars, d, number_of_spectra, number_of_peaks):
             print(pars[f'p{i}_{idx}_high'])
     return pars
 
+
 def param_per_peak_sorting_fkt(pars):
     result = {}
     p = re.compile('p[0-9]+_[0-9]+')
@@ -49,6 +50,7 @@ def param_per_peak_sorting_fkt(pars):
         result[prefix][name] = pars[name]
 
     return result
+
 
 def param_per_spectra_sorting_fkt(pars):
     result = {}
@@ -64,8 +66,7 @@ def param_per_spectra_sorting_fkt(pars):
     return result
 
 
-
-def param_updater_main_fkt(d,param_file_type, param_file_name, number_of_spectra, number_of_peaks):
+def param_updater_main_fkt(d, param_file_type, param_file_name, number_of_spectra, number_of_peaks):
     pars, param_file_type, param_file_type_str = param_updater(param_file_type, param_file_name)
 
     pars_new = pars.copy()
