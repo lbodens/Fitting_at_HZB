@@ -1,11 +1,17 @@
 import numpy as np
+from plots_scripts.Analysis_plotting import plot_2D_map, save_2D_map
 
+def matrix_and_plot_creation_and_save(df, message, plot_name ,Inputs):
+    A = matrix_creation(df, Inputs)
+    plot_2D_map(A, plot_name, Inputs)
+    write_to_file(A, message, Inputs)
+    save_2D_map(A, plot_name, Inputs)
+    return
 
 def matrix_creation_and_save(df, message, Inputs):
     A = matrix_creation(df, Inputs)
     write_to_file(A, message, Inputs)
     return
-
 
 def matrix_creation(df, Inputs):
     """
@@ -42,16 +48,18 @@ def save_to_file_main_fkt(Inputs, df_a_1, df_a_2, df_a_tot, df_c_shift_bw_oxid, 
     df_ratio_perc_2, df_ratio_abs_2 = df_a_2
     df_ratio_perc_tot, df_ratio_abs_tot = df_a_tot
 
-    matrix_creation_and_save(df_ratio_perc_1, "Percentage ratio of oxid state 1 to 2 of {}:".format(Inputs["el1_name"]),
-                             Inputs)
+
+    matrix_and_plot_creation_and_save(df_ratio_perc_1, "Percentage ratio of oxid state 1 to 2 of {}:".format(Inputs["el1_name"]),
+                             "perc_oxid_{}:".format(Inputs["el1_name"]), Inputs)
     matrix_creation_and_save(df_ratio_abs_1, "Absolute ratio of oxid state 1 to 2 of {}:".format(Inputs["el1_name"]),
                              Inputs)
-    matrix_creation_and_save(df_ratio_perc_2, "Percentage ratio of oxid state 1 to 2 of {}:".format(Inputs["el2_name"]),
-                             Inputs)
+    matrix_and_plot_creation_and_save(df_ratio_perc_2, "Percentage ratio of oxid state 1 to 2 of {}:".format(Inputs["el2_name"]),
+                             "perc_oxid_{}:".format(Inputs["el2_name"]),Inputs)
     matrix_creation_and_save(df_ratio_abs_2, "Absolute ratio of oxid state 1 to 2 of {}:".format(Inputs["el2_name"]),
                              Inputs)
-    matrix_creation_and_save(df_ratio_perc_tot,
-                             "Percentage ratio of {} to {}:".format(Inputs["el1_name"], Inputs["el2_name"]), Inputs)
+    matrix_and_plot_creation_and_save(df_ratio_perc_tot,
+                             "Percentage ratio of {} to {}:".format(Inputs["el1_name"], Inputs["el2_name"]),
+                             "perc_oxid_{}_to_{}:".format(Inputs["el1_name"], Inputs["el2_name"]), Inputs)
     matrix_creation_and_save(df_ratio_abs_tot,
                              "Absolute ratio of {} to {}:".format(Inputs["el1_name"], Inputs["el2_name"]), Inputs)
 

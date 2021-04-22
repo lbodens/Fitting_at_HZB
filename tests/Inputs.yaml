@@ -36,6 +36,7 @@
   el1_name: "Cu2O"
   el1_number_of_peaks: 14
   el1_peak_type: "Voigt"
+  el1_oxid_and_corelvl_sorting: [0,3,0,0,3,1,4,1,1,4,2,5,5,2]                # list of oxid sates sorted after their oxid sate and the core lvl: oxid_0_p3/2: 0, oxid_1_p3/2: 1,oxid_2_p3/2: 2,oxid_0_p1/2: 3,oxid_1_p1/2: 4,oxid_1_p1/2: 5,
   el1_number_of_total_oxid_state: 3
   el1_number_per_oxid_state_0: 5
   el1_number_per_oxid_state_1: 5
@@ -44,20 +45,15 @@
   el1_sigma: 14.58                            
   # transmission function from the analizer
   el1_trans_fkt: 0.7242                       
-  # mean free path
+  # init mean free path
   el1_IMFP: 1212                              
 
 
-
-
-
-
-
-  el2_folder_or_file: "file"        #or "folder"
+  el2_folder_or_file: "file"        # or "folder"
   el2_file_path: "D:\\Profile\\ogd\\Eigene Dateien\\GitHub\\Fitting_at_HZB\\Ni2p_data2"       #if file in same folder as main.py, then the file name is enough
   el2_folder_path: ""               # write path to the folder with all files inside. (only necessary, if you choose folder instead of file)
   el2_txt_or_dat: ".dat"            # are you using .txt files or .dat files? Please enter '.txt' or '.dat'(dot in the beginning is important!)
-  el2_skip_rows: 0                # Enter number of rows above the spectra data incl the header line ('# Energy Kinetic' or what ever the header is)
+  el2_skip_rows: 0                 # Enter number of rows above the spectra data incl the header line ('# Energy Kinetic' or what ever the header is)
   el2_BE_or_KE : "BE"
   el2_KE_excertation_E: 1486.7
 
@@ -66,6 +62,7 @@
   el2_name: "NiO"
   el2_number_of_peaks: 18
   el2_peak_type: "Voigt"
+  el2_oxid_and_corelvl_sorting: [0,0,0,0,0,3,3,3,3,1,1,1,1,1,4,4,4,4]
   el2_number_of_total_oxid_state: 3
   el2_number_per_oxid_state_0: 9
   el2_number_per_oxid_state_1: 9
@@ -74,12 +71,9 @@
   el2_trans_fkt: 0.7300
   el2_IMFP: 1667
 
-  result_file_path: "D:\\Profile\\ogd\\Eigene Dateien\\GitHub\\Fitting_at_HZB\\tests\\fit_Analysis.txt"
-
-
-  test: 
-    value: 4
-
+  result_file_path: "D:\\Profile\\ogd\\Eigene Dateien\\GitHub\\Fitting_at_HZB\\results\\fit_Analysis_CuNiO_bare.txt"
+  result_plot_path: "D:\\Profile\\ogd\\Eigene Dateien\\GitHub\\Fitting_at_HZB\\results\\"  
+  result_plot_path_end: ".png"
 
 
   el1_IMFP_0.975 : 1297.9
