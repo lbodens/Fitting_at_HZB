@@ -62,7 +62,7 @@ while fit_loop == False:
 
         print("Now a small loop sections will run, where you can check all init parameters via plots again.")
         nfev = int(input("So please update the starting parameters. Furthermore: update the max iterations do you want to use here:"))
-        params_via_plot_checking(x, d, y_d, mod_d, peak_func, param_file_type, param_file_name, number_of_spectra, number_of_peaks)
+        params_via_plot_checking(x, d, y_d, mod_d, peak_func, param_file_type_str, param_file_name, number_of_spectra, number_of_peaks)
         out, out_params, y_d = fitting_function_main_fkt(d, p4fit, x, mod_d, number_of_spectra, number_of_peaks,nfev)
 
 print(out_params)
