@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 #matplotlib.use('TkAgg')
 import re
 from plots_scripts.Fitting_functions import model_eval_fitted_fkt
+from plots_scripts.Param_check_via_plotting import choose_spectra_to_plot
 
 
 
@@ -136,7 +137,7 @@ def plotting_fit_subplots(x, y_d, model_d_fitted, shirley_BG_d, mod_w_sBG_peaks_
         for idx in range(int(number_of_peaks)):
             axes.plot(x, mod_w_sBG_peaks_p_p_d_eval[f'spectra_{i}'][f'p_{idx}'],
                       label=f"peak_{idx}")  # every fitted peak + shirley sum
-        axes.plot(x, shirley_BG_d[f"spectra_{i}"], color = 'grey', linestyle='dashed', label='shirley')  # shirley of fitted peaks
+        axes.plot(x, shirley_BG_d[f"spectra_{i}"], color='grey', linestyle='dashed', label='shirley')  # shirley of fitted peaks
     plt.xlim([max(x), min(x)])
     plt.legend(loc='best')
     plt.show()
@@ -149,7 +150,7 @@ def plotting_fit_single_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_pea
     for idx in range(int(number_of_peaks)):
         axs.plot(x, mod_w_sBG_peaks_p_p_d_eval[f'spectra_{spectra_to_plot}'][f'p_{idx}'],
                       label=f"peak_{idx}")  # every fitted peak + shirley sum
-    axs.plot(x, shirley_BG_d[f"spectra_{spectra_to_plot}"], color = 'grey', linestyle='dashed', label='shirley')  # shirley of fitted peaks
+    axs.plot(x, shirley_BG_d[f"spectra_{spectra_to_plot}"], color='grey', linestyle='dashed', label='shirley')  # shirley of fitted peaks
     plt.xlim([max(x), min(x)])
     plt.legend(loc='best')
     plt.show()
@@ -160,7 +161,12 @@ def plotting_subplots_main_fkt(x, pAfit_s_d, mod_d, y_d, peak_func, number_of_sp
 
     x_nr_of_subplt = int(input("please enter the number of plots you want to see in x-direction"))
     y_nr_of_subplt = int(input("please enter the number of plots you want to see in y-direction"))
-    plotting_fit_subplots(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval, number_of_peaks,
+    if y_nr_of_subplt*x_nr_of_subplt == 1:
+        spectra_to_plot = choose_spectra_to_plot()
+        plotting_fit_single_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval, number_of_peaks,
+                                     spectra_to_plot)
+    else:
+        plotting_fit_subplots(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval, number_of_peaks,
                                 x_nr_of_subplt, y_nr_of_subplt)
 
 
