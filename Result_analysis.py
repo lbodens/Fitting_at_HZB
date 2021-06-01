@@ -1,17 +1,26 @@
+#################################################################################################################################
+#                                                                                                                               #
+# This Program is written to use the fitted data and plot/analyzes it.                                                          #
+# Therefore it first loads the fitted data (via get params) for the two elements, which you want to plot/analyze/compare        #
+#                                                                                                                               #
+#################################################################################################################################
+
 import yaml
 import numpy as np
 
 from plots_scripts.Analysis_plotting import *
-from plots_scripts. Analysis_ana import *
+from plots_scripts.Analysis_ana import *
 from plots_scripts.Analysis_save_output import *
 
 
-"""-------------creating matrix style output and save itinto a file----------------------"""
+"""-------------creating matrix style output and save it into a file----------------------"""
 
 
 def result_ana_main_fkt(Inputs):
-    
+
+    print("Importing 1st dataset")
     pars_cl_1, df_1_a_sum, df_1_a_1_sum, df_1_c_sum = get_params_fkt(Inputs, 1)
+    print("Importing 2nd dataset")
     pars_cl_2, df_2_a_sum, df_2_a_1_sum, df_2_c_sum = get_params_fkt(Inputs, 2)
     
     plot_or_ana_check = True
