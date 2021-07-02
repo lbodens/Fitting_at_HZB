@@ -16,14 +16,14 @@ def folder_or_file_fkt(Inputs):
 
     folder_or_file = Inputs["folder_or_file"]
 
-    if folder_or_file.lower() =="file" or folder_or_file.lower() == "files":
-        structure_type="file"
+    if folder_or_file.lower() == "file" or folder_or_file.lower() == "files":
+        structure_type = "file"
         path = Inputs["file_path"]
     if folder_or_file.lower() == "folder":
-        structure_type="folder"
+        structure_type = "folder"
         path = Inputs["folder_path"]
 
-    txt_or_dat= Inputs["txt_or_dat"]
+    txt_or_dat = Inputs["txt_or_dat"]
     skip_row_nr = Inputs["skip_row_nr"]
 
     return path, structure_type ,txt_or_dat, skip_row_nr
@@ -56,8 +56,8 @@ def energy_test_fkt(d, number_of_spectra):
 
 def dat_merger_single_file_fkt(file_path, txt, Inputs, skip_rows, number_of_spectra):
     df = pd.read_csv(file_path + txt, skiprows=skip_rows, delim_whitespace=True, header=None)
-    d={}
-    BE_or_KE, exertation_energy  = BE_or_KE_fkt(Inputs)
+    d = {}
+    BE_or_KE, exertation_energy = BE_or_KE_fkt(Inputs)
     for i in range(int(number_of_spectra)):
         dat_i = "dat_" + str(i)
         d[dat_i]=pd.DataFrame(columns=["E", "Spectra"])
@@ -74,7 +74,7 @@ def dat_merger_multiple_files_fkt(folder_path, txt, Inputs, skip_rows, number_of
     txt_files = glob.glob(folder_path + "*" + txt)
     BE_or_KE, exertation_energy = BE_or_KE_fkt(Inputs)
 
-    d={}
+    d = {}
     for i in range(int(number_of_spectra)):
         df = pd.read_csv(txt_files[i], skiprows=skip_rows, delim_whitespace=True, header=None)
         dat_i = "dat_" + str(i)

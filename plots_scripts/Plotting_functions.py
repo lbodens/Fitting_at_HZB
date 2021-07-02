@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 #matplotlib.use('TkAgg')
 import re
 from plots_scripts.Fitting_functions import model_eval_fitted_fkt
-from plots_scripts.Param_check_via_plotting import choose_spectra_to_plot
+#from plots_scripts.Param_check_via_plotting import choose_spectra_to_plot
 
 
 
@@ -129,9 +129,11 @@ def plot_1st_spectra_for_overview(d):
     plt.show()
     
 
-def plotting_fit_subplots(x, y_d, model_d_fitted, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval,number_of_peaks, x_nr_of_subplt, y_nr_of_subplt):
+def plotting_fit_subplots(x, y_d, model_d_fitted, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval, number_of_peaks, x_nr_of_subplt, y_nr_of_subplt):
     fig, axs = plt.subplots(y_nr_of_subplt, x_nr_of_subplt, figsize=(15, 8), sharex=True, sharey=True)
     for i, axes in enumerate(axs.flat):
+        if i >= len(y_d):               # to not break, if the number of plots is e.g. uneven
+            break
         axes.plot(x, y_d[i], 'black', label='data')
         axes.plot(x, model_d_fitted[i], 'r', label='fit')  # envelope of fitted peaks
         for idx in range(int(number_of_peaks)):
@@ -162,7 +164,7 @@ def plotting_subplots_main_fkt(x, pAfit_s_d, mod_d, y_d, peak_func, number_of_sp
     x_nr_of_subplt = int(input("please enter the number of plots you want to see in x-direction"))
     y_nr_of_subplt = int(input("please enter the number of plots you want to see in y-direction"))
     if y_nr_of_subplt*x_nr_of_subplt == 1:
-        spectra_to_plot = choose_spectra_to_plot()
+        spectra_to_plot = int(input("Please enter the spectra nr (0 to n-1) which you want to look at:\n"))
         plotting_fit_single_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval, number_of_peaks,
                                      spectra_to_plot)
     else:

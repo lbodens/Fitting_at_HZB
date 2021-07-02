@@ -29,16 +29,16 @@ def check_if_peak_inport_is_good():
         return check_shown_peak_input
 
 
-def params_via_plot_checking(x,d, y_d, mod_d,peak_func, param_file_type, param_file_name,number_of_spectra, number_of_peaks) :
+def params_via_plot_checking(x, d, y_d, mod_d, peak_func, param_file_type_str, param_file_name, number_of_spectra, number_of_peaks):
     spectra_to_plot_bool = False
     are_pre_params_good_bool = False
     spectra_to_plot = choose_spectra_to_plot()
     while spectra_to_plot_bool == False and are_pre_params_good_bool == False:
         while are_pre_params_good_bool == False:
 
-            p4fit, p4fit_s_d, p4fit_p_d, param_file_type, param_file_type_str = param_updater_main_fkt(d,param_file_type, param_file_name, number_of_spectra, number_of_peaks)
-            mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval= model_separator_eval_fkt(p4fit_s_d, mod_d,  peak_func, x, number_of_spectra, number_of_peaks)
-            plotting_fit_single_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval,number_of_peaks, spectra_to_plot)
+            p4fit, p4fit_s_d, p4fit_p_d, param_file_type, param_file_type_str = param_updater_main_fkt(d, param_file_type_str, param_file_name, number_of_spectra, number_of_peaks)
+            mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval= model_separator_eval_fkt(p4fit_s_d, mod_d,  peak_func,x , number_of_spectra, number_of_peaks)
+            plotting_fit_single_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval, number_of_peaks, spectra_to_plot)
 
             are_pre_params_good_bool = check_if_peak_inport_is_good()
             if are_pre_params_good_bool == True:

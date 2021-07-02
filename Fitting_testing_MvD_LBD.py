@@ -32,7 +32,7 @@ mod_d, number_of_peaks, peak_func = peak_model_build_main_fkt(d, Inputs, 0)
 #Importing previous parameter file and check inputs
 param_file_type_str = Inputs["param_file_type_str"]
 param_file_name = Inputs["param_file_name"]
-p4fit, p4fit_s_d, p4fit_p_d , param_file_type, param_file_type_str = param_updater_main_fkt(d, param_file_type_str, param_file_name, number_of_spectra, number_of_peaks)
+p4fit, p4fit_s_d, p4fit_p_d, param_file_type, param_file_type_str = param_updater_main_fkt(d, param_file_type_str, param_file_name, number_of_spectra, number_of_peaks)
 
 
 #plot selected spectra with the selected starting parameters, which then can be updated
@@ -41,7 +41,6 @@ y_d, resid = y_for_fit(d, x, number_of_spectra, number_of_peaks)
 pre_param_check = input("Now you can check the pre-set parameters. If you don´t want to do that, enter 'yes'/'y'?")
 if pre_param_check.lower() == "yes" or pre_param_check.lower() == "y":
     params_via_plot_checking(x, d, y_d, mod_d, peak_func, param_file_type_str, param_file_name,number_of_spectra, number_of_peaks)
-
 
 
 """--------------------------------------actual fitting fkt------------------------------------------------"""
@@ -64,7 +63,7 @@ while fit_loop == False:
         nfev = int(input("So please update the starting parameters. Furthermore: update the max iterations do you want to use here:"))
         params_via_plot_checking(x, d, y_d, mod_d, peak_func, param_file_type_str, param_file_name, number_of_spectra, number_of_peaks)
         out, out_params, y_d = fitting_function_main_fkt(d, p4fit, x, mod_d, number_of_spectra, number_of_peaks,nfev)
-
+    else:  continue
 print(out_params)
 """-------------------------------------------------Exporting Data-----------------------------------------------------------"""
 

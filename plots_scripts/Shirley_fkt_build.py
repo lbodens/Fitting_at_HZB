@@ -5,9 +5,6 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-
-
-
 import numpy as np
 import lmfit
 import lmfit.models
@@ -18,39 +15,43 @@ import lmfit.models
 
 """--------------Peak fit models----------------"""
 from lmfit.models import GaussianModel
-#parameters amplitude, center, sigma
+# parameters amplitude, center, sigma
 # f(x:A, mu, sigma) =(A/sigma*sqrt(2*pi))*exp(-(x-mu)^2/(2*sigma*2))
-#fwhm = 2*sigma*swrt(2*ln(2))
-#prefix = "Gaus_"
+# fwhm = 2*sigma*swrt(2*ln(2))
+# prefix = "Gaus_"
 
 from lmfit.models import LorentzianModel
-#amplitude, center, sigma
+# amplitude, center, sigma
 # f(x:A, mu, sigma) = (A/pi)*(sigma/((x-mu)^2+sigma^2))
-#prefix = "Loren_"
+# prefix = "Loren_"
 
 from lmfit.models import VoigtModel
-#parameters amplitude, center, sigma, gamma
-#Default gamma = sigma, then fwhm = 3.6013*sigma
+# parameters amplitude, center, sigma, gamma
+# Default gamma = sigma, then fwhm = 3.6013*sigma
 # f(x:A, mu, sigma, gamma) = A*RE(w(z))/(sigma*sqrt(2*pi))
 # z = (x - mu + i*gamma)/(sigma*sqrt(2))
 # w(z) = exp(-z^2)*erfc(-i*z)
-#prefix = "Voigt_"
+# prefix = "Voigt_"
 
 from lmfit.models import DoniachModel
-#parameters amplitude, center, sigma, gamma
+# parameters amplitude, center, sigma, gamma
 # f(x:A, mu, sigma, gamma)
-#prefix = "DS_"
+# prefix = "DS_"
 
 """----------------------------------------------------------------------------------------------------------------------------------------"""
 """------------------------------------------------------Shirley background fit------------------------------------------------------------"""
 """----------------------------------------------------------------------------------------------------------------------------------------"""
+
+
 def shirley_bg(x, low=0., high=.1):
     return low, high
+
 
 def create_bg(left, right):
     low, high = right
     cumsum = np.cumsum(left)
     return left + low + (high - low) * (cumsum / cumsum[-1])
+
 
 def build_curve_from_peaks(i, idx, peak_func, n_spectra=1):
     model = None
@@ -65,15 +66,16 @@ def build_curve_from_peaks(i, idx, peak_func, n_spectra=1):
 
     return model
 
+
 def peak_model_build_main_fkt(d, Inputs, element_number):
     # creating wanted number and types of peaks
     number_of_spectra = Inputs["number_of_spectra"]
     
-    if element_number ==0:
+    if element_number == 0:
         number_of_peaks = Inputs["number_of_peaks"]
         peak_type = Inputs["peak_type"]
     
-    #only necessary, for the Input_ana.files
+    # only necessary, for the Input_ana.files
     if element_number >0:
         number_of_peaks = Inputs["el{}_number_of_peaks".format(element_number)]
         peak_type = Inputs["el{}_peak_type".format(element_number)]

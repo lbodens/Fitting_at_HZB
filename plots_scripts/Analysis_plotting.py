@@ -16,7 +16,7 @@ def param_into_pars_and_sorting(params):
     and then sorts it into the right type (after spectra)
     """
     # make from the cleaned params (only value int) into dict with p.._name : {value: int}
-    param_val={}
+    param_val = {}
     for name in params:
         if param_val.get(name) is None:
             param_val[name] = {}
@@ -57,13 +57,14 @@ def other_spectra_loader(Inputs):
     number_of_spectra = 13
     d = {}
     for i in range(13):
-        path = "D:\\Profile\\ogd\\Eigene Dateien\\GitHub\\Fitting_at_HZB\\tests\\Ni2p_data_shirley_Row_{}".format(i +1)
+        path = "D:\\Profile\\ogd\\Eigene Dateien\\GitHub\\Fitting_at_HZB\\tests\\Ni2p_data_shirley_Row_{}".format(i + 1)
         d["row_{}".format(i)] = dat_merger_single_file_fkt(path, txt, Inputs, int(skip_rows), int(number_of_spectra))
     print(d)
     return d
 
 
-def plotting_fit_single_plot_fkt(x, y_d, shir_d,  mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval, Inputs, element_number, spectra_to_plot):
+def plotting_fit_single_plot_fkt(x, y_d, shir_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval, Inputs,
+                                 element_number, spectra_to_plot):
     number_of_peaks = Inputs["el{}_number_of_peaks".format(element_number)]
     range_of_1st_state = Inputs["el{}_number_per_oxid_state_0".format(element_number)]
     range_of_2nd_state = range_of_1st_state + Inputs["el{}_number_per_oxid_state_1".format(element_number)]
@@ -74,13 +75,13 @@ def plotting_fit_single_plot_fkt(x, y_d, shir_d,  mod_d_eval, shirley_BG_d, mod_
     for idx in range(int(number_of_peaks)):
         if idx < range_of_1st_state:
             axs.plot(x, mod_w_sBG_peaks_p_p_d_eval[f'spectra_{spectra_to_plot}'][f'p_{idx}'],
-                      label="oxid_1", color='g')  # every fitted peak + shirley sum
+                     label="oxid_1", color='g')  # every fitted peak + shirley sum
         if range_of_1st_state <= idx < range_of_2nd_state:
             axs.plot(x, mod_w_sBG_peaks_p_p_d_eval[f'spectra_{spectra_to_plot}'][f'p_{idx}'],
-                      label="oxid_2", color='b')  # every fitted peak + shirley sum
+                     label="oxid_2", color='b')  # every fitted peak + shirley sum
         if idx >= range_of_2nd_state:
             axs.plot(x, mod_w_sBG_peaks_p_p_d_eval[f'spectra_{spectra_to_plot}'][f'p_{idx}'],
-                      label="BG_peaks", color='orange')  # every fitted peak + shirley sum
+                     label="BG_peaks", color='orange')  # every fitted peak + shirley sum
 
     axs.plot(x, shirley_BG_d[f"spectra_{spectra_to_plot}"], color='grey', linestyle='dashed',
              label='shirley')  # shirley of fitted peaks
@@ -122,7 +123,7 @@ def save_2D_map(df, plot_name, Inputs):
     z = np.array(df)
     Z = z.reshape(Inputs["number_of_columns"], Inputs["number_of_rows"])
     plt.imshow(Z, interpolation="bilinear")
-    plt.savefig(Inputs["result_plot_path"] + plot_name +Inputs["result_plot_path_end"])
+    plt.savefig(Inputs["result_plot_path"] + plot_name + Inputs["result_plot_path_end"])
     return
 
 
@@ -132,16 +133,22 @@ def plotting_ana_main_fkt(params, Inputs, element_number):
 
     pars_s_d = param_into_pars_and_sorting(params)
     d, x, y_d, mod_d, peak_func = spectra_and_and_model_generator(Inputs, element_number)
-    mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_eval = model_separator_eval_fkt(pars_s_d, mod_d, peak_func, x, nr_of_spectra, number_of_peaks)
+    mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_eval = model_separator_eval_fkt(pars_s_d, mod_d, peak_func, x,
+                                                                              nr_of_spectra, number_of_peaks)
 
     shir_d = other_spectra_loader(Inputs)
     plotting_loop = True
     while plotting_loop:
         spectra_to_plot = int(input("which spectra do you want to plot [0:n-1]?\n"))
 
-        plotting_fit_single_plot_fkt(x, y_d, shir_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_eval, Inputs, element_number, spectra_to_plot)
+        plotting_fit_single_plot_fkt(x, y_d, shir_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_eval, Inputs,
+                                     element_number, spectra_to_plot)
 
         continue_loop = input("do you want to plot other spectra aswell? please enter 'y' or 'n':\n")
         if continue_loop == 'n':
             break
     return
+
+
+
+
