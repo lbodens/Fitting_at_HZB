@@ -19,16 +19,16 @@ def param_cleaning_fkt(pars):
     """
     result_pars = {}
     for name in pars:
-        pos_val_start=pars[name].index("=")
-        pos_val_end=pars[name].index(", bound")
+        pos_val_start = pars[name].index("=")
+        pos_val_end = pars[name].index(", bound")
         if " (fixed)" in pars[name]:
-            pos_val_end=pars[name].index(" (fixed)")
+            pos_val_end = pars[name].index(" (fixed)")
 
         pars_value = ""
-        for k in range(pos_val_start+1,pos_val_end):
-            pars_value=pars_value + pars[name][k]
-        pars_value=float(pars_value)
-        result_pars[name]= pars_value
+        for k in range(pos_val_start+1, pos_val_end):
+            pars_value = pars_value + pars[name][k]
+        pars_value = float(pars_value)
+        result_pars[name] = pars_value
     return result_pars
 
 
@@ -48,7 +48,7 @@ def get_params_fkt(Inputs, element_number):
     pars_center = param_center_sorting_fkt(pars_cl, Inputs, element_number)
 
     df_a_0, df_a_1 = oxid_state_area_sort_fkt(pars_area, Inputs, element_number)
-    df_c= oxid_state_center_sort_fkt(pars_center, Inputs, element_number)
+    df_c = oxid_state_center_sort_fkt(pars_center, Inputs, element_number)
 
     return pars_cl, df_a_0, df_a_1, df_c
 
@@ -58,7 +58,8 @@ def get_params_fkt(Inputs, element_number):
 
 def param_area_sorting_fkt(pars, Inputs, element_number):
     """
-    This function sorts all params by the amplidude values and save them into a df["spectra_{i}"]["p{i}_{idx}_amplitude"] style (with each peak as a single value)
+    This function sorts all params by the amplidude values and save them into a
+    df["spectra_{i}"]["p{i}_{idx}_amplitude"] style (with each peak as a single value)
     """
     number_of_spectra = Inputs["number_of_spectra"]
     number_of_peaks = Inputs["el{}_number_of_peaks".format(element_number)]
@@ -69,7 +70,7 @@ def param_area_sorting_fkt(pars, Inputs, element_number):
     for idx in range(int(number_of_peaks)):
         for i in range(int(number_of_spectra)):
             for name in pars:
-                if f'p{i}_{idx}_amplitude' in name:
+                if 'p{}_{}_amplitude'.format(i, idx) in name:
                     pars_area_di["spectra_" + str(i)][f"{name}"] = pars[name]
 
     return pars_area_di
@@ -81,10 +82,7 @@ def oxid_state_area_sort_fkt(pars_df, Inputs, element_number):
     """
     number_of_spectra = Inputs["number_of_spectra"]
     number_of_peaks = Inputs["el{}_number_of_peaks".format(element_number)]
-    range_of_1st_state = Inputs["el{}_number_per_oxid_state_0".format(element_number)]
-    range_of_2nd_state = range_of_1st_state + Inputs["el{}_number_per_oxid_state_1".format(element_number)]
-    range_of_3rd_state = range_of_2nd_state + Inputs["el{}_number_per_oxid_state_2".format(element_number)]
-    oxid_core_lvl_list =Inputs["el{}_oxid_and_corelvl_sorting".format(element_number)]
+    oxid_core_lvl_list = Inputs["el{}_oxid_and_corelvl_sorting".format(element_number)]
 
     area = {}
     # creation of df for the oxid sates o_x within the core level _y [0: main peak e.g (2p3/2), 1: 2nd peak e.g. 2p1/2)]
@@ -97,47 +95,24 @@ def oxid_state_area_sort_fkt(pars_df, Inputs, element_number):
     df_o_2_1 = {}
     df_o_tot_1 = {}
 
-    for i in range(6):    # IF you are changing the number of oxid states to greater than 2x3, then update here as well!
-        area[i] = 0
+
 
     for i in range(int(number_of_spectra)):
         spectra_i = "spectra_" + str(i)
+
+        # setting the area to 0 at the beginning for each spectra
+        for o in range(6):  # IF you are changing the number of oxid states to greater than 2x3, then update here as well!
+            area[o] = 0
+
         for name in pars_df[spectra_i]:
             for idx in range(number_of_peaks):
                 if f'p{i}_{idx}' in name:
                     area[oxid_core_lvl_list[idx]] = area[oxid_core_lvl_list[idx]] + pars_df[spectra_i][name]
-                 #   if i == 0:
-                 #       print(area[0])
-#    """
-#    for i in range(int(number_of_spectra)):
-#        spectra_i = "spectra_" + str(i)
-#
-#        for j in range(int(range_of_1st_state)):
-#            for name in pars_df[spectra_i]:
-#                if f'p{i}_{j}' in name:
-#                    area[0] = area[0] + pars_df[spectra_i][name]
-#
-#        for k in range(range_of_1st_state, range_of_2nd_state):
-#            for name in pars_df[spectra_i]:
-#                if f'p{i}_{k}' in name:
-#                    area[1] = area[1] + pars_df[spectra_i][name]
-#
-#        for l in range(range_of_2nd_state, range_of_3rd_state):
-#            for name in pars_df[spectra_i]:
-#                if f'p{i}_{l}' in name:
-#                    area[2] = area[2] + pars_df[spectra_i][name]
-#
-#        df_o_0[spectra_i] = area[0]
-#        df_o_1[spectra_i] = area[1]
-#        df_o_2[spectra_i] = area[2]
-#        df_o_tot[spectra_i] = area[0] + area[1] + area[2]
-#    """
+
         df_o_0_0[spectra_i] = area[0]
         df_o_1_0[spectra_i] = area[1]
         df_o_2_0[spectra_i] = area[2]
-      #  print(area[0], area[1], area[2])
         df_o_tot_0[spectra_i] = area[0] + area[1] + area[2]
-
 
         df_o_0_1[spectra_i] = area[3]
         df_o_1_1[spectra_i] = area[4]
@@ -184,15 +159,16 @@ def area_ratio_calc_fkt(df_1, df_2, Inputs, nr_of_diff_elements):
 
     df_ratio_abs = {}
     df_ratio_perc = {}
+
     for i in range(int(number_of_spectra)):
         spectra_i = "spectra_" + str(i)
         df_ratio_perc[spectra_i] = float(format((df_1[spectra_i] * el1_factor) / (
                     df_1[spectra_i] * el1_factor + df_2[spectra_i] * el2_factor), '.2f'))
         df_ratio_abs[spectra_i] = float(format((df_1[spectra_i] * el1_factor) / (df_2[spectra_i] * el2_factor), '.2f'))
 
-    if nr_of_diff_elements == 3:
-        n = 0
-        while n < 5000:
+    if nr_of_diff_elements == 3 and Inputs["matrix_bool"] == True:
+        print("yasy")
+        for n in range(5000):
             for i in range(int(number_of_spectra)):
                 spectra_i = "spectra_" + str(i)
 
@@ -209,13 +185,52 @@ def area_ratio_calc_fkt(df_1, df_2, Inputs, nr_of_diff_elements):
                 df_ratio_perc[spectra_i] = float(format((df_1[spectra_i] * el1_factor) / (
                             df_1[spectra_i] * el1_factor + df_2[spectra_i] * el2_factor), '.2f'))
                 df_ratio_abs[spectra_i] = float(format((df_1[spectra_i] * el1_factor) / (df_2[spectra_i] * el2_factor), '.2f'))
-            n += 1
     return df_ratio_perc, df_ratio_abs
+
+
+def error_calc(df_1, df_2, df_ratio_perc, Inputs):
+    """
+    If you have an error estimation of your fit: then include this part here..
+    if not, then not.. also export it by hand.. at the moment. so thats it not mandatory
+    -----------------------------------------------------------------------
+    """
+    number_of_spectra = Inputs["number_of_spectra"]
+
+    if Inputs["error_estimation"] == True:
+        df_ratio_error_pos = {}
+        df_ratio_error_neg = {}
+        df_error_el1 = {}
+        df_error_el2 = {}
+        df_ratio_error_pos_diff = {}
+        df_ratio_error_neg_diff = {}
+
+        for i in range(int(number_of_spectra)):
+            spectra_i = "spectra_" + str(i)
+
+            df_error_el1[spectra_i] = Inputs["error_el1"][i]
+            df_error_el2[spectra_i] = Inputs["error_el2"][i]
+            error_factor_min = 1.2 * 1.1 * 1.05
+            error_factor_max = 0.8 * 0.9 * 0.95
+
+            df_ratio_error_pos[spectra_i] = float(
+                format((df_1[spectra_i] * el1_factor * (1 - df_error_el1[spectra_i] / error_factor_min)) / (
+                        (df_1[spectra_i] * el1_factor * (1 - df_error_el1[spectra_i] / error_factor_min)) +
+                        (df_2[spectra_i] * el2_factor * (1 + df_error_el2[spectra_i] / error_factor_max))), '.2f'))
+
+            df_ratio_error_neg[spectra_i] = float(
+                format((df_1[spectra_i] * el1_factor * (1 + df_error_el1[spectra_i] / error_factor_max)) / (
+                        (df_1[spectra_i] * el1_factor * (1 + df_error_el1[spectra_i] / error_factor_max)) +
+                        (df_2[spectra_i] * el2_factor * (1 - df_error_el2[spectra_i] / error_factor_min))), '.2f'))
+
+            df_ratio_error_pos_diff[spectra_i] = (df_ratio_perc[spectra_i] * 1000 - df_ratio_error_pos[
+                spectra_i] * 1000) / 1000
+            df_ratio_error_neg_diff[spectra_i] = (df_ratio_perc[spectra_i] * 1000 - df_ratio_error_neg[
+                spectra_i] * 1000) / 1000
 
 
 def area_calculations_fkt(df_1_a_sum, df_2_a_sum, Inputs):
     """
-    This function calls the functins to do all the necessary/possible ratio calculations
+    This function calls the functions to do all the necessary/possible ratio calculations
 
     end result:
         df_1: the ratios / percentage of oxid state from the 1st to 2nd oxid state of the 1st element
