@@ -61,11 +61,13 @@ def result_ana_main_fkt(Inputs):
 
 """--------------------------------'main' code---------------------------------------"""
     
-param_file_path = "D:\\Profile\\ogd\\Eigene Dateien\\GitHub\\Fitting_at_HZB\\tests\\"
-param_file_type_str = "yaml"
-param_file_type = yaml
-
-Inputs = param_file_type.load(open(param_file_path+"Inputs." + param_file_type_str), Loader=param_file_type.FullLoader)
+input_param_file_type_str = "yaml"
+input_param_file_type = yaml
+inputs_file_name = input("please enter the name/path of the fit input file (normally Input_fit):\n")
+Inputs = input_param_file_type.load(open(inputs_file_name + "." + input_param_file_type_str),
+                                    Loader=input_param_file_type.FullLoader)
 number_of_spectra = Inputs["number_of_spectra"]
 
 result_ana_main_fkt(Inputs)
+
+

@@ -24,7 +24,8 @@ d, number_of_spectra = df_creator_main_fkt(Inputs)
 # just to plot once for an overview
 # plot_1st_spectra_for_overview(d)
 
-# building the Models (peak + shirley) and save it as df. The 0 is there, since we areusing the Input_fit.file. with the ana file, the number will be changed there
+# building the Models (peak + shirley) and save it as df. The 0 is there, since we areusing the Input_fit.file. with
+# the ana file, the number will be changed there
 mod_d, number_of_peaks, peak_func = peak_model_build_main_fkt(d, Inputs, 0)
 
 # Importing previous parameter file and check inputs
@@ -51,24 +52,24 @@ out, out_params, y_d = fitting_function_main_fkt(d, p4fit, x, mod_d, number_of_s
 """-------------plotting the fitted spectra------------------------------"""
 
 fit_loop = False
-while fit_loop == False:
+while not fit_loop:
     plotting_subplots_main_fkt(x, out_params, mod_d, y_d, peak_func, number_of_spectra, number_of_peaks)
-    fit_qualtity_test = input("Is the fit good enough? \nIf yes please enter 'yes'/'y'. if Not enter 'no'/'n':\n")
-    if fit_qualtity_test.lower() == "yes" or fit_qualtity_test.lower() == "y":
+    fit_quality_test = input("Is the fit good enough? \nIf yes please enter 'yes'/'y'. if Not enter 'no'/'n':\n")
+    if fit_quality_test.lower() == "yes" or fit_quality_test.lower() == "y":
         fit_loop = True
         break
-    if fit_qualtity_test.lower() == "no" or fit_qualtity_test.lower() == "n":
+    if fit_quality_test.lower() == "no" or fit_quality_test.lower() == "n":
 
         print("Now a small loop sections will run, where you can check all init parameters via plots again.")
-        nfev = int(input(
-            "So please update the starting parameters. Furthermore: update the max iterations do you want to use here:"))
+        nfev = int(input("So please update the starting parameters. Furthermore: update the max iterations do you "
+                         "want to use here:"))
         params_via_plot_checking(x, d, y_d, mod_d, peak_func, param_file_type_str, param_file_name, number_of_spectra,
                                  number_of_peaks)
         out, out_params, y_d = fitting_function_main_fkt(d, p4fit, x, mod_d, number_of_spectra, number_of_peaks, nfev)
     else:
         continue
 print(out_params)
-"""-------------------------------------------------Exporting Data-----------------------------------------------------------"""
+"""-----------------------------------------Exporting Data-----------------------------------------------------------"""
 
 """ saving output into diff file"""
 """data_param_file={}
