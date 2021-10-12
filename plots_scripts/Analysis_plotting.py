@@ -34,15 +34,18 @@ def param_into_pars_and_sorting(params):
 
 def spectra_and_and_model_generator(Inputs, element_number):
     file_type = Inputs["el{}_folder_or_file".format(element_number)]
-    path = Inputs["el{}_file_path".format(element_number)]
     skip_rows = Inputs["el{}_skip_rows".format(element_number)]
     txt = Inputs["el{}_txt_or_dat".format(element_number)]
     number_of_spectra = Inputs["number_of_spectra".format(element_number)]
     number_of_peaks = Inputs["el{}_number_of_peaks".format(element_number)]
     if file_type == "file":
+        path = Inputs["el{}_file_path".format(element_number)]
         d = dat_merger_single_file_fkt(path, txt, Inputs, int(skip_rows), int(number_of_spectra))
     if file_type == "folder":
-        d = dat_merger_multiple_files_fkt(path, txt, Inputs, int(skip_rows), int(number_of_spectra))
+        path = Inputs["el{}_folder_path".format(element_number)]
+        counting_start = Inputs["el{}_file_counting_start".format(element_number)]
+        column_nr = Inputs["el{}_column_nr".format(element_number)]
+        d = dat_merger_multiple_files_fkt(path, txt, Inputs, int(skip_rows), counting_start, column_nr, int(number_of_spectra))
 
     x = d[f'dat_0']["E"].to_numpy()
     y_d, resid = y_for_fit(d, x, number_of_spectra, number_of_peaks)

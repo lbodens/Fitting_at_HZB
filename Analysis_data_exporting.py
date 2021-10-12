@@ -1,15 +1,13 @@
-# this function can be used to export the fitted data. but not as parameters but evaluated.
+# this function can be used to export the fitted data. Not as parameters but evaluated.
 # params = pars_cl_{} with {} = element_number
 from plots_scripts.Analysis_ana import get_params_fkt
 from plots_scripts.Analysis_plotting import param_into_pars_and_sorting, spectra_and_and_model_generator
 from plots_scripts.Plotting_functions import model_separator_eval_fkt
 import yaml
 import matplotlib.pyplot as plt
-import numpy as np
 
 
 def export_fitted_eval_data_main_fkt(Inputs):
-
     element_number = Inputs["element_number"]
     nr_of_spectra = Inputs["number_of_spectra"]
     nr_of_peaks = Inputs["el{}_number_of_peaks".format(element_number)]
@@ -38,22 +36,19 @@ def export_fitted_eval_data_main_fkt(Inputs):
           Inputs["el1_name"] + ".txt")
     export_center_fkt(df_c_sum, element_number, nr_of_spectra, Inputs)
 
-
     printout_loop = False
     while printout_loop is False:
         spectra_to_plot = int(input("please enter the spectra nr (0 to n-1) you want to extract"))
         export_eval_data_fkt(Inputs, element_number, spectra_to_plot, x, mod_w_sBG_peaks_eval, shirley_BG_d,
-                                mod_d_eval)
+                             mod_d_eval)
 
         export_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_eval, Inputs, element_number, spectra_to_plot)
 
         printout_loop_check = input("do you want to extract other spectra as well? if yes please type 'y' or 'yes'. "
-                                     "Else any key.")
+                                    "Else any key.")
         if not printout_loop_check.lower() == "y" or printout_loop_check.lower() == "yes":
             printout_loop = True
 
-#        else:
-#            continue
     return
 
 
@@ -84,7 +79,7 @@ def export_area_fkt(df_a_sum, df_a_1_sum, element_nr, nr_of_spectra, Inputs):
     file.write("\n")
     for s in range(nr_of_spectra):
         spectra_s = "spectra_" + str(s)
-        file.write("S"+str(s))
+        file.write("S" + str(s))
         file.write("\t")
         for i in range(4):
             file.write(str(df_a_sum[i][spectra_s]))
@@ -121,7 +116,7 @@ def export_center_fkt(df_c_sum, element_nr, nr_of_spectra, Inputs):
         spectra_s = "spectra_" + str(s)
         file.write("S" + str(s))
         file.write("\t")
-        for i in range(1,4):
+        for i in range(1, 4):
             file.write(str(df_c_sum[i][spectra_s]))
             file.write("\t")
         file.write("\n")
@@ -129,11 +124,10 @@ def export_center_fkt(df_c_sum, element_nr, nr_of_spectra, Inputs):
 
 
 def export_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_eval, Inputs, element_number, spectra_to_plot):
-
     number_of_peaks = Inputs["el{}_number_of_peaks".format(element_number)]
-    color_list = Inputs["color_list"]   # ["g", "b", "darkorange", "lightgreen", "cornflowerblue", "orange"]
-    label_list = Inputs["label_list"]   # ["oxid_1$_{3/2}$", "oxid_2$_{3/2}$", "oxid_3$_{3/2}$", "oxid_1$_{1/2}$",
-                                        # "oxid_2$_{1/2}$", "oxid_3$_{1/2}$"]
+    color_list = Inputs["color_list"]  # ["g", "b", "darkorange", "lightgreen", "cornflowerblue", "orange"]
+    label_list = Inputs["label_list"]  # ["oxid_1$_{3/2}$", "oxid_2$_{3/2}$", "oxid_3$_{3/2}$", "oxid_1$_{1/2}$",
+    # "oxid_2$_{1/2}$", "oxid_3$_{1/2}$"]
     oxid_sorting = Inputs["el{}_oxid_and_corelvl_sorting".format(element_number)]
 
     fig, axs = plt.subplots()
@@ -160,8 +154,7 @@ def export_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_eval, Inpu
 
 
 def export_eval_data_fkt(Inputs, element_number, spectra_to_plot, x, mod_w_sBG_peaks_eval, shirley_BG_d,
-                                mod_d_eval):
-
+                         mod_d_eval):
     path = Inputs["result_file_path"] + "eval_spec_{}_{}.txt".format(Inputs["el{}_name".format(element_number)],
                                                                      spectra_to_plot)
     file = open(path, "a")
@@ -199,7 +192,8 @@ def export_eval_data_fkt(Inputs, element_number, spectra_to_plot, x, mod_w_sBG_p
     file.close()
 
 
-param_file_path = input("please enter the file path + name of the Inputs-extraction file:\n")#"D:\\Profile\\ogd\\Eigene Dateien\\GitHub\\Fitting_at_HZB\\tests\\"
+param_file_path = input(
+    "please enter the file path + name of the Inputs-extraction file:\n")  # "D:\\Profile\\ogd\\Eigene Dateien\\GitHub\\Fitting_at_HZB\\tests\\"
 param_file_type_str = "yaml"
 param_file_type = yaml
 

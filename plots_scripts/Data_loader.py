@@ -72,14 +72,13 @@ def dat_merger_single_file_fkt(file_path, txt, Inputs, skip_rows, number_of_spec
     return d
 
 
-def dat_merger_multiple_files_fkt(folder_path, txt, Inputs, skip_rows, number_of_spectra):
+def dat_merger_multiple_files_fkt(folder_path, txt, Inputs, skip_rows, counting_start, column_nr,  number_of_spectra):
     txt_files = [0] * number_of_spectra
     for i in range(number_of_spectra):
-        i_str = str(i + Inputs["file_counting_start"])
+        i_str = str(i + counting_start)
         list = glob.glob(folder_path + "*" + "_" + i_str + txt)  # , recursive = True)
         txt_files[i] = list[0]
     BE_or_KE, exertation_energy = BE_or_KE_fkt(Inputs)
-    column_nr = Inputs["column_nr"]
 
     d = {}
     for i in range(int(number_of_spectra)):
@@ -103,5 +102,7 @@ def df_creator_main_fkt(Inputs):
     if file_type == "file":
         d = dat_merger_single_file_fkt(path, txt, Inputs, int(skip_rows), int(number_of_spectra))
     if file_type == "folder":
-        d = dat_merger_multiple_files_fkt(path, txt, Inputs, int(skip_rows), int(number_of_spectra))
+        counting_start = Inputs["file_counting_start"]
+        column_nr = Inputs["column_nr"]
+        d = dat_merger_multiple_files_fkt(path, txt, Inputs, int(skip_rows), counting_start, column_nr, int(number_of_spectra))
     return d, number_of_spectra
