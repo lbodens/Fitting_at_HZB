@@ -150,7 +150,7 @@ def plotting_fit_subplots(x, y_d, model_d_fitted, shirley_BG_d, mod_w_sBG_peaks_
     for i, axes in enumerate(axs.flat):
         if i >= len(y_d):  # to not break, if the number of plots is e.g. uneven
             break
-        axes.plot(x, y_d[i], 'black', label='data')
+        axes.plot(x, y_d[i], 'black', label=f'data S{i}')
         axes.plot(x, model_d_fitted[i], 'r', label='fit')  # envelope of fitted peaks
         for idx in range(int(number_of_peaks)):
             axes.plot(x, mod_w_sBG_peaks_p_p_d_eval[f'spectra_{i}'][f'p_{idx}'],

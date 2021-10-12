@@ -31,6 +31,13 @@ def export_fitted_eval_data_main_fkt(Inputs):
     print(df_a_sum[2])
     print("area of {}: ".format(label_list[2]))
     print(df_a_sum[3])
+    print("And will be saved in:" + Inputs["result_file_path"] + "areas_" + Inputs["el1_name"] + ".txt")
+    export_area_fkt(df_a_sum, df_a_1_sum, element_number, nr_of_spectra, Inputs)
+
+    print("An overview of the main peak centers will be saved in:" + Inputs["result_file_path"] + "center_" +
+          Inputs["el1_name"] + ".txt")
+    export_center_fkt(df_c_sum, element_number, nr_of_spectra, Inputs)
+
 
     printout_loop = False
     while printout_loop is False:
@@ -50,6 +57,77 @@ def export_fitted_eval_data_main_fkt(Inputs):
     return
 
 
+def export_area_fkt(df_a_sum, df_a_1_sum, element_nr, nr_of_spectra, Inputs):
+    """
+    This function will save the areas of the different peaks (according to the list of oxid_and_corelclc soritng and the
+    naming list) in a file
+    """
+
+    path = Inputs["result_file_path"] + "areas_" + Inputs["el{}_name".format(element_nr)] + ".txt"
+    label_list = Inputs["label_list"]
+    file = open(path, "a")
+
+    file.write("The following areas are corresponding to the label list: " + str(label_list))
+    file.write("\n\n")
+    file.write("Spectra")
+    file.write("\t")
+    file.write("'tot area of 1st 3'")
+    file.write("\t")
+    for i in range(3):
+        file.write("'{}'".format(label_list[i]))
+        file.write("\t")
+    file.write("'tot area of last 3'")
+    file.write("\t")
+    for i in range(3, 6):
+        file.write("'{}'".format(label_list[i]))
+        file.write("\t")
+    file.write("\n")
+    for s in range(nr_of_spectra):
+        spectra_s = "spectra_" + str(s)
+        file.write("S"+str(s))
+        file.write("\t")
+        for i in range(4):
+            file.write(str(df_a_sum[i][spectra_s]))
+            file.write("\t")
+        for i in range(4):
+            file.write(str(df_a_1_sum[i][spectra_s]))
+            file.write("\t")
+        file.write("\n")
+    file.close()
+
+
+def export_center_fkt(df_c_sum, element_nr, nr_of_spectra, Inputs):
+    """
+    This function will save the areas of the different peaks (according to the list of oxid_and_corelclc soritng and the
+    naming list) in a file
+    """
+
+    path = Inputs["result_file_path"] + "center_" + Inputs["el{}_name".format(element_nr)] + ".txt"
+    label_list = Inputs["label_list"]
+    file = open(path, "a")
+
+    file.write("The following center are from the 1st (main) peak of the first 3 corresponding to the label list: " +
+               str(label_list) + "\nThe following investigated peaks are selected by the 'nr_per_oxid_state_#', "
+                                 "which will be skipped, with respect to the naming pi_#_center")
+    file.write("\n\n")
+    file.write("Spectra")
+    file.write("\t")
+    for i in range(3):
+        file.write("'{}' ".format(label_list[i]))
+        file.write("\t")
+    file.write("\n")
+
+    for s in range(nr_of_spectra):
+        spectra_s = "spectra_" + str(s)
+        file.write("S" + str(s))
+        file.write("\t")
+        for i in range(1,4):
+            file.write(str(df_c_sum[i][spectra_s]))
+            file.write("\t")
+        file.write("\n")
+    file.close()
+
+
 def export_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_eval, Inputs, element_number, spectra_to_plot):
 
     number_of_peaks = Inputs["el{}_number_of_peaks".format(element_number)]
@@ -59,7 +137,7 @@ def export_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_eval, Inpu
     oxid_sorting = Inputs["el{}_oxid_and_corelvl_sorting".format(element_number)]
 
     fig, axs = plt.subplots()
-    axs.plot(x, y_d[spectra_to_plot], 'black', label='data_{}'.format(element_number))
+    axs.plot(x, y_d[spectra_to_plot], 'black', label='data_{}_S{}'.format(element_number, spectra_to_plot))
     axs.plot(x, mod_d_eval[spectra_to_plot], 'r', label='fit')
 
     label_check = [True, True, True, True, True, True]

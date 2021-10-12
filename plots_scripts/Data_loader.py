@@ -32,16 +32,16 @@ def BE_or_KE_fkt(Inputs):
     while BE_or_KE_check:
         choice_input = Inputs["BE_or_KE"]
         if choice_input.lower() == "ke":
-            exertation_energy = Inputs["KE_excertation_E"]
+            excitation_energy = Inputs["KE_excitation_E"]
             BE_or_KE = "KE"
             BE_or_KE_check = False
             break
         elif choice_input.lower() == "be":
-            exertation_energy = 0
+            excitation_energy = 0
             BE_or_KE = "BE"
             BE_or_KE_check = False
             break
-    return BE_or_KE, exertation_energy
+    return BE_or_KE, excitation_energy
 
 
 def energy_test_fkt(d, number_of_spectra):

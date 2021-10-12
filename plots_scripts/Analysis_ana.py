@@ -78,7 +78,10 @@ def param_area_sorting_fkt(pars, Inputs, element_number):
 
 def oxid_state_area_sort_fkt(pars_df, Inputs, element_number):
     """
-    This function adds all the peaks corresponding to an oxidation state per spectra into a df each (and the sum of all)
+    This function adds all the peaks per oxidation state and spin-orbit-splitting into a df each (and the sum of all)
+    These are saved in containers which will have the first 3 and last 3 of the naming list [a:3/2_1, b:3/2_2, c:3/2_3,
+    d:1/2_1, e:1/2_2, f:1/2_3] put together. Corresponding to the oxid_and_corelvl_sorting list
+    --> container1: all 3/2 (a-c), container2: all 1/2 (d-f)
     """
     number_of_spectra = Inputs["number_of_spectra"]
     number_of_peaks = Inputs["el{}_number_of_peaks".format(element_number)]
@@ -94,8 +97,6 @@ def oxid_state_area_sort_fkt(pars_df, Inputs, element_number):
     df_o_1_1 = {}
     df_o_2_1 = {}
     df_o_tot_1 = {}
-
-
 
     for i in range(int(number_of_spectra)):
         spectra_i = "spectra_" + str(i)
@@ -251,9 +252,6 @@ def area_calculations_fkt(df_1_a_sum, df_2_a_sum, Inputs):
     return df_1, df_2, df_tot
 
 
-
-
-
 """-------------- center cals --------------------"""
 
 
@@ -277,14 +275,14 @@ def param_center_sorting_fkt(pars, Inputs, element_number):
 
 def oxid_state_center_sort_fkt(pars_df, Inputs, element_number):
     """
-    This function adds all the peaks corresponding to an oxidation state per spectra into a df each (and the summ of all)
+    This function adds all the peaks corresponding to an oxidation state per spectra into a df each (and the sum of all)
     Also if your input oxid states > total peaks (for what ever reason), it´s send out an error
     """
     number_of_spectra = Inputs["number_of_spectra"]
 
-    range_of_1st_state = Inputs["el{}_number_per_oxid_state_0".format(element_number)]
-    range_of_2nd_state = range_of_1st_state + Inputs["el{}_number_per_oxid_state_1".format(element_number)]
-    range_of_3rd_state = range_of_2nd_state + Inputs["el{}_number_per_oxid_state_2".format(element_number)]
+    range_of_1st_state = 0 #Inputs["el{}_number_per_oxid_state_0".format(element_number)]
+    range_of_2nd_state = range_of_1st_state + Inputs["el{}_number_per_oxid_state_0".format(element_number)]
+    range_of_3rd_state = range_of_2nd_state + Inputs["el{}_number_per_oxid_state_1".format(element_number)]
 
     df_o_1 = {}
     df_o_2 = {}
@@ -292,6 +290,9 @@ def oxid_state_center_sort_fkt(pars_df, Inputs, element_number):
 
     for i in range(int(number_of_spectra)):
         spectra_i = "spectra_" + str(i)
+        df_o_1[spectra_i] = 0
+        df_o_2[spectra_i] = 0
+        df_o_3[spectra_i] = 0
 
         for name in pars_df[spectra_i]:
             if f'p{i}_{range_of_1st_state}' in name:
@@ -332,7 +333,7 @@ def center_shift_intern_df_calc_fkt(df_1, number_of_spectra):
 
 def center_calculations_fkt(df_1_c_sum, df_2_c_sum, Inputs):
     """
-    This function calls the functins to do all the necessary/possible calculations.
+    This function calls the functions to do all the necessary/possible calculations.
     end result:
         df_center_shift_bw_oxid: the energy diff between both 1st main peaks of the oxid states
         df_center_shift_el1: the shift of all peaks within the first oxid state in dependence of the 1st peaks position of the 1st element
