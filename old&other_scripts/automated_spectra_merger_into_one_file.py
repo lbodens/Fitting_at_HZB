@@ -234,8 +234,8 @@ def spec_params():
     return (skip_row_nr, column_nr)
 
 
-def spectra_merger(file_path, file_name, mid_string, end_string, txt, spectra_nr, skip_row_nr, last_file_nr,
-                   starting_region, counter):
+def spectra_merger(file_path, file_name, mid_string, end_string, txt, spectra_nr, skip_row_nr, column_nr, last_file_nr,
+                   starting_region):
     """the 'real' merging fkt.
     1.) creating a list of path´s the same amount of df entries
     2.) adding all columns form the files with the increasing count nr of the file (step calc by the pre-entered params)
@@ -320,8 +320,8 @@ skip_row_nr, column_nr = spec_params()
 
 # first time merging & saving the files
 if counter == 0:
-    df = spectra_merger(file_path, file_name, mid_string, end_string, txt, spectra_nr, skip_row_nr, last_file_nr,
-                        starting_region, counter)
+    df = spectra_merger(file_path, file_name, mid_string, end_string, txt, spectra_nr, skip_row_nr, column_nr, last_file_nr,
+                        starting_region)
     file_output(file_path, file_name, output, df)
 
 
@@ -332,8 +332,8 @@ continue_merging = input("do you want to merge other spectra as well? \n then pl
 while continue_merging.lower() == "yes" or continue_merging.lower() == "y":
     file_path, file_name, type_of_file, mid_string, end_string = file_input_fkt(file_path, file_name, type_of_file,
                                                                                 counter)
-    df = spectra_merger(file_path, file_name, mid_string, end_string, txt, spectra_nr, skip_row_nr, last_file_nr,
-                        starting_region, counter)
+    df = spectra_merger(file_path, file_name, mid_string, end_string, txt, spectra_nr, skip_row_nr, column_nr,
+                        last_file_nr, starting_region)
     file_output(file_path, file_name, output, df)
 
     continue_merging = input("do you want to merge other spectra as well? \n Then please enter 'yes/y' or type 'no/n'")
