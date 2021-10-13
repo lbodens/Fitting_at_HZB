@@ -48,9 +48,9 @@ def get_params_fkt(Inputs, element_number):
     pars_center = param_center_sorting_fkt(pars_cl, Inputs, element_number)
 
     df_a_0, df_a_1 = oxid_state_area_sort_fkt(pars_area, Inputs, element_number)
-    df_c = oxid_state_center_sort_fkt(pars_center, Inputs, element_number)
+    df_c_0, df_c_1 = oxid_state_center_sort_fkt(pars_center, Inputs, element_number)
 
-    return pars_cl, df_a_0, df_a_1, df_c
+    return pars_cl, df_a_0, df_a_1, df_c_0, df_c_1
 
 
 """------------area calcs---------------------"""
@@ -274,39 +274,41 @@ def param_center_sorting_fkt(pars, Inputs, element_number):
 
 
 def oxid_state_center_sort_fkt(pars_df, Inputs, element_number):
-    """
-    This function adds all the peaks corresponding to an oxidation state per spectra into a df each (and the sum of all)
-    Also if your input oxid states > total peaks (for what ever reason), it´s send out an error
-    """
+
     number_of_spectra = Inputs["number_of_spectra"]
+    number_of_peaks = Inputs["el{}_number_of_peaks".format(element_number)]
+    oxid_core_lvl_list = Inputs["el{}_oxid_and_corelvl_sorting".format(element_number)]
+    df_o_0_0 = {}
+    df_o_1_0 = {}
+    df_o_2_0 = {}
+    df_o_0_1 = {}
+    df_o_1_1 = {}
+    df_o_2_1 = {}
 
-    range_of_1st_state = 0 #Inputs["el{}_number_per_oxid_state_0".format(element_number)]
-    range_of_2nd_state = range_of_1st_state + Inputs["el{}_number_per_oxid_state_0".format(element_number)]
-    range_of_3rd_state = range_of_2nd_state + Inputs["el{}_number_per_oxid_state_1".format(element_number)]
-
-    df_o_1 = {}
-    df_o_2 = {}
-    df_o_3 = {}
-
+    center = {}
     for i in range(int(number_of_spectra)):
         spectra_i = "spectra_" + str(i)
-        df_o_1[spectra_i] = 0
-        df_o_2[spectra_i] = 0
-        df_o_3[spectra_i] = 0
+
+        # setting the area to 0 at the beginning for each spectra
+        for o in range(
+                6):  # IF you are changing the number of oxid states to greater than 2x3, then update here as well!
+            center[o] = 0
 
         for name in pars_df[spectra_i]:
-            if f'p{i}_{range_of_1st_state}' in name:
-                df_o_1[spectra_i] = pars_df[spectra_i][name]
+            for idx in range(number_of_peaks):
+                if f'p{i}_{idx}' in name and center[oxid_core_lvl_list[idx]] == 0 :
+                    center[oxid_core_lvl_list[idx]] = center[oxid_core_lvl_list[idx]] + pars_df[spectra_i][name]
 
-            if f'p{i}_{range_of_2nd_state}' in name:
-                df_o_2[spectra_i] = pars_df[spectra_i][name]
+        df_o_0_0[spectra_i] = center[0]
+        df_o_1_0[spectra_i] = center[1]
+        df_o_2_0[spectra_i] = center[2]
 
-            if f'p{i}_{range_of_3rd_state}' in name:
-                df_o_3[spectra_i] = pars_df[spectra_i][name]
-    df_o_tot = df_o_1.copy()
-
-    df_container = df_o_tot, df_o_1, df_o_2, df_o_3
-    return df_container
+        df_o_0_1[spectra_i] = center[3]
+        df_o_1_1[spectra_i] = center[4]
+        df_o_2_1[spectra_i] = center[5]
+    df_container = df_o_0_0, df_o_1_0, df_o_2_0
+    df_container2 = df_o_0_1, df_o_1_1, df_o_2_1
+    return df_container, df_container2
 
 
 def center_shift_between_2_df_calc_fkt(df_1, df_2, number_of_spectra):
@@ -340,11 +342,11 @@ def center_calculations_fkt(df_1_c_sum, df_2_c_sum, Inputs):
         df_center_shift_el2: the shift of all peaks within the first oxid state in dependence of the 1st peaks position of the 2nd element
     """
     number_of_spectra = Inputs["number_of_spectra"]
-    df_1_c_tot, df_1_c_1, df_1_c_2, df_1_c_3 = df_1_c_sum
-    df_2_c_tot, df_2_c_1, df_2_c_2, df_2_c_3 = df_2_c_sum
+    df_1_c_1, df_1_c_2, df_1_c_3 = df_1_c_sum
+    df_2_c_1, df_2_c_2, df_2_c_3 = df_2_c_sum
 
     df_center_shift_bw_oxid = center_shift_between_2_df_calc_fkt(df_1_c_1, df_1_c_2, number_of_spectra)
-    df_center_shift_el1 = center_shift_intern_df_calc_fkt(df_1_c_tot, number_of_spectra)
-    df_center_shift_el2 = center_shift_intern_df_calc_fkt(df_2_c_tot, number_of_spectra)
+    df_center_shift_el1 = center_shift_intern_df_calc_fkt(df_1_c_1, number_of_spectra)
+    df_center_shift_el2 = center_shift_intern_df_calc_fkt(df_2_c_1, number_of_spectra)
 
     return df_center_shift_bw_oxid, df_center_shift_el1, df_center_shift_el2

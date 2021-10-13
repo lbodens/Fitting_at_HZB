@@ -69,12 +69,15 @@ def other_spectra_loader(Inputs):
 def plotting_fit_single_plot_fkt(x, y_d, shir_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval, Inputs,
                                  element_number, spectra_to_plot):
     number_of_peaks = Inputs["el{}_number_of_peaks".format(element_number)]
+    """
     range_of_1st_state = Inputs["el{}_number_per_oxid_state_0".format(element_number)]
     range_of_2nd_state = range_of_1st_state + Inputs["el{}_number_per_oxid_state_1".format(element_number)]
     range_of_3rd_state = range_of_2nd_state + Inputs["el{}_number_per_oxid_state_2".format(element_number)]
+    """
     fig, axs = plt.subplots()
     axs.plot(x, y_d[spectra_to_plot], 'black', label='data_{}'.format(element_number))
     axs.plot(x, mod_d_eval[spectra_to_plot], 'r', label='fit')  # envelope of fitted peaks
+    """
     for idx in range(int(number_of_peaks)):
         if idx < range_of_1st_state:
             axs.plot(x, mod_w_sBG_peaks_p_p_d_eval[f'spectra_{spectra_to_plot}'][f'p_{idx}'],
@@ -85,6 +88,17 @@ def plotting_fit_single_plot_fkt(x, y_d, shir_d, mod_d_eval, shirley_BG_d, mod_w
         if idx >= range_of_2nd_state:
             axs.plot(x, mod_w_sBG_peaks_p_p_d_eval[f'spectra_{spectra_to_plot}'][f'p_{idx}'],
                      label="BG_peaks", color='orange')  # every fitted peak + shirley sum
+    """
+    color_list = Inputs["color_list"]
+    label_list = Inputs["label_list"]
+    check_list = [0]*len(label_list)
+    for idx in range(int(number_of_peaks)):
+        if check_list[idx] == 0:
+            axs.plot(x, mod_w_sBG_peaks_p_p_d_eval[f'spectra_{spectra_to_plot}'][f'p_{idx}'], label=label_list[idx],
+                     color=color_list[idx])
+            check_list[idx] = 1
+        if check_list == 1:
+            axs.plot(x, mod_w_sBG_peaks_p_p_d_eval[f'spectra_{spectra_to_plot}'][f'p_{idx}'], color=color_list[idx])
 
     axs.plot(x, shirley_BG_d[f"spectra_{spectra_to_plot}"], color='grey', linestyle='dashed',
              label='shirley')  # shirley of fitted peaks
@@ -147,7 +161,7 @@ def plotting_ana_main_fkt(params, Inputs, element_number):
         plotting_fit_single_plot_fkt(x, y_d, shir_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_eval, Inputs,
                                      element_number, spectra_to_plot)
 
-        continue_loop = input("do you want to plot other spectra aswell? please enter 'y' or 'n':\n")
+        continue_loop = input("do you want to plot other spectra as well? please enter 'y' or 'n':\n")
         if continue_loop == 'n':
             break
     return

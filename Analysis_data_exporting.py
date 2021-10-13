@@ -12,7 +12,7 @@ def export_fitted_eval_data_main_fkt(Inputs):
     nr_of_spectra = Inputs["number_of_spectra"]
     nr_of_peaks = Inputs["el{}_number_of_peaks".format(element_number)]
 
-    pars_cl, df_a_sum, df_a_1_sum, df_c_sum = get_params_fkt(Inputs, element_number)
+    pars_cl, df_a_sum, df_a_1_sum, df_c_sum_0, df_c_sum_1 = get_params_fkt(Inputs, element_number)
 
     pars_s_d = param_into_pars_and_sorting(pars_cl)
     d, x, y_d, mod_d, peak_func = spectra_and_and_model_generator(Inputs, element_number)
@@ -34,7 +34,7 @@ def export_fitted_eval_data_main_fkt(Inputs):
 
     print("An overview of the main peak centers will be saved in:" + Inputs["result_file_path"] + "center_" +
           Inputs["el1_name"] + ".txt")
-    export_center_fkt(df_c_sum, element_number, nr_of_spectra, Inputs)
+    export_center_fkt(df_c_sum_0, df_c_sum_1, element_number, nr_of_spectra, Inputs)
 
     printout_loop = False
     while printout_loop is False:
@@ -91,7 +91,7 @@ def export_area_fkt(df_a_sum, df_a_1_sum, element_nr, nr_of_spectra, Inputs):
     file.close()
 
 
-def export_center_fkt(df_c_sum, element_nr, nr_of_spectra, Inputs):
+def export_center_fkt(df_c_sum_0, df_c_sum_1, element_nr, nr_of_spectra, Inputs):
     """
     This function will save the areas of the different peaks (according to the list of oxid_and_corelclc soritng and the
     naming list) in a file
@@ -107,7 +107,7 @@ def export_center_fkt(df_c_sum, element_nr, nr_of_spectra, Inputs):
     file.write("\n\n")
     file.write("Spectra")
     file.write("\t")
-    for i in range(3):
+    for i in range(len(label_list)):
         file.write("'{}' ".format(label_list[i]))
         file.write("\t")
     file.write("\n")
@@ -116,8 +116,11 @@ def export_center_fkt(df_c_sum, element_nr, nr_of_spectra, Inputs):
         spectra_s = "spectra_" + str(s)
         file.write("S" + str(s))
         file.write("\t")
-        for i in range(1, 4):
-            file.write(str(df_c_sum[i][spectra_s]))
+        for i in range(len(df_c_sum_0)):
+            file.write(str(df_c_sum_0[i][spectra_s]))
+            file.write("\t")
+        for i in range(len(df_c_sum_1)):
+            file.write(str(df_c_sum_1[i][spectra_s]))
             file.write("\t")
         file.write("\n")
     file.close()
@@ -134,15 +137,15 @@ def export_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_eval, Inpu
     axs.plot(x, y_d[spectra_to_plot], 'black', label='data_{}_S{}'.format(element_number, spectra_to_plot))
     axs.plot(x, mod_d_eval[spectra_to_plot], 'r', label='fit')
 
-    label_check = [True, True, True, True, True, True]
+    check_list = [0]*len(label_list)
     for idx in range(int(number_of_peaks)):
-        if label_check[oxid_sorting[idx]]:
+        if check_list[oxid_sorting[idx]] == 0:
             axs.plot(x, mod_w_sBG_peaks_eval[f'spectra_{spectra_to_plot}'][f'p_{idx}'],
-                     label=label_list[oxid_sorting[idx] % 6], color=color_list[oxid_sorting[idx]])
-        else:
+                     label=label_list[oxid_sorting[idx]], color=color_list[oxid_sorting[idx]])
+            check_list[oxid_sorting[idx]] = 1
+        if check_list == 1:
             axs.plot(x, mod_w_sBG_peaks_eval[f'spectra_{spectra_to_plot}'][f'p_{idx}'],
                      color=color_list[oxid_sorting[idx]])
-        label_check[oxid_sorting[idx]] = False
 
     axs.plot(x, shirley_BG_d[f"spectra_{spectra_to_plot}"], color='grey', linestyle='dashed', label='shirley')
 
@@ -191,6 +194,7 @@ def export_eval_data_fkt(Inputs, element_number, spectra_to_plot, x, mod_w_sBG_p
 
     file.close()
 
+# --------------------------------------------   -----------------------------------------------------------------------
 
 param_file_path = input(
     "please enter the file path + name of the Inputs-extraction file:\n")  # "D:\\Profile\\ogd\\Eigene Dateien\\GitHub\\Fitting_at_HZB\\tests\\"
