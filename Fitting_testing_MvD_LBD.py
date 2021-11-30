@@ -68,7 +68,7 @@ while not fit_loop:
         out, out_params, y_d = fitting_function_main_fkt(d, p4fit, x, mod_d, number_of_spectra, number_of_peaks, nfev)
     else:
         continue
-print(out_params)
+#print(out_params)
 """-----------------------------------------Exporting Data-----------------------------------------------------------"""
 
 """ saving output into diff file"""
