@@ -1,7 +1,36 @@
 import yaml, json
+import pandas as pd
+import numpy as np
+
+
+"""---------------for Analysis_data_exporting------------------"""
+
+
+def get_params_fkt(Inputs, element_number):
+    """
+    function, which loads a fit result and saves it into a df. Then cleans it and sorts it after area and center.
+    Which one is loaded depends on the 'element_number'
+
+    """
+    param_file_type = Inputs["el{}_param_file_type".format(element_number)]
+    param_file_name = Inputs["el{}_param_file_name".format(element_number)]
+
+    pars = result_param_reader(param_file_type, param_file_name)
+    pars_cl = param_cleaning_fkt(pars)
+
+    pars_area = param_area_sorting_fkt(pars_cl, Inputs, element_number)
+    pars_center = param_center_sorting_fkt(pars_cl, Inputs, element_number)
+
+    df_a_0, df_a_1 = oxid_state_area_sort_fkt(pars_area, Inputs, element_number)
+    df_c_0, df_c_1 = oxid_state_center_sort_fkt(pars_center, Inputs, element_number)
+
+    return pars_cl, df_a_0, df_a_1, df_c_0, df_c_1
 
 
 def result_param_reader(param_file_type, param_file_name):
+    """
+    fkt to set the right param-file type
+    """
     if param_file_type == "yaml":
         param_file_type = yaml
         param_file_type_str = "yaml"
@@ -30,30 +59,6 @@ def param_cleaning_fkt(pars):
         pars_value = float(pars_value)
         result_pars[name] = pars_value
     return result_pars
-
-
-def get_params_fkt(Inputs, element_number):
-    """
-    function, which loads a fit result and saves it into a df. Then cleans it and sorts it after area and center.
-    Which one is loaded depends on the 'element_number'
-
-    """
-    param_file_type = Inputs["el{}_param_file_type".format(element_number)]
-    param_file_name = Inputs["el{}_param_file_name".format(element_number)]
-
-    pars = result_param_reader(param_file_type, param_file_name)
-    pars_cl = param_cleaning_fkt(pars)
-
-    pars_area = param_area_sorting_fkt(pars_cl, Inputs, element_number)
-    pars_center = param_center_sorting_fkt(pars_cl, Inputs, element_number)
-
-    df_a_0, df_a_1 = oxid_state_area_sort_fkt(pars_area, Inputs, element_number)
-    df_c_0, df_c_1 = oxid_state_center_sort_fkt(pars_center, Inputs, element_number)
-
-    return pars_cl, df_a_0, df_a_1, df_c_0, df_c_1
-
-
-"""------------area calcs---------------------"""
 
 
 def param_area_sorting_fkt(pars, Inputs, element_number):
@@ -92,167 +97,46 @@ def oxid_state_area_sort_fkt(pars_df, Inputs, element_number):
     df_o_0_0 = {}
     df_o_1_0 = {}
     df_o_2_0 = {}
+    df_o_3_0 = {}
+    df_o_4_0 = {}
     df_o_tot_0 = {}
     df_o_0_1 = {}
     df_o_1_1 = {}
     df_o_2_1 = {}
+    df_o_3_1 = {}
+    df_o_4_1 = {}
     df_o_tot_1 = {}
 
     for i in range(int(number_of_spectra)):
         spectra_i = "spectra_" + str(i)
 
         # setting the area to 0 at the beginning for each spectra
-        for o in range(6):  # IF you are changing the number of oxid states to greater than 2x3, then update here as well!
+        for o in range(10):  # IF you are changing the number of oxid states to greater than 2x3, then update here as well!
             area[o] = 0
 
         for name in pars_df[spectra_i]:
             for idx in range(number_of_peaks):
-                if f'p{i}_{idx}' in name:
+                if f'p{i}_{idx}_' in name:
                     area[oxid_core_lvl_list[idx]] = area[oxid_core_lvl_list[idx]] + pars_df[spectra_i][name]
 
         df_o_0_0[spectra_i] = area[0]
         df_o_1_0[spectra_i] = area[1]
         df_o_2_0[spectra_i] = area[2]
-        df_o_tot_0[spectra_i] = area[0] + area[1] + area[2]
+        df_o_3_0[spectra_i] = area[3]
+        df_o_4_0[spectra_i] = area[4]
+        df_o_tot_0[spectra_i] = area[0] + area[1] + area[2] + area[3] + area[4]
 
-        df_o_0_1[spectra_i] = area[3]
-        df_o_1_1[spectra_i] = area[4]
-        df_o_2_1[spectra_i] = area[5]
-        df_o_tot_1[spectra_i] = area[3] + area[4] + area[5]
+        df_o_0_1[spectra_i] = area[5]
+        df_o_1_1[spectra_i] = area[6]
+        df_o_2_1[spectra_i] = area[7]
+        df_o_3_1[spectra_i] = area[8]
+        df_o_4_1[spectra_i] = area[9]
+        df_o_tot_1[spectra_i] = area[5] + area[6] + area[7] + area[8] + area[9]
 
-    df_container_0 = df_o_tot_0, df_o_0_0, df_o_1_0, df_o_2_0
-    df_container_1 = df_o_tot_1, df_o_0_1, df_o_1_1, df_o_2_1
+    df_container_0 = df_o_tot_0, df_o_0_0, df_o_1_0, df_o_2_0, df_o_3_0, df_o_4_0
+    df_container_1 = df_o_tot_1, df_o_0_1, df_o_1_1, df_o_2_1, df_o_3_1, df_o_4_1
 
     return df_container_0, df_container_1
-
-
-def area_ratio_calc_fkt(df_1, df_2, Inputs, nr_of_diff_elements):
-    """
-    This function calcs the ratios of different df´s ´. It also uses the preset values of corss section, IMFP, and the transmissionfkt.
-    If the same elements are used (nr_of_diff_elements =[1,2]), only one iteration is done. (since the IMFP does not change since its all the same elements)
-    But if different elements are used (nr_of_diff_elements = 3) a small iteration overits self runs. first one pre calculatuion is done with some basic IMFP´s.
-    the previous calculated ratio is taken, compared to the ones for IMFP values (el{x}_IMFP_{ratio_in_%}) and then updated. this is done ~5000 times,
-    to make sure, that there is no big change anymore.
-    """
-    number_of_spectra = Inputs["number_of_spectra"]
-
-    if nr_of_diff_elements < 3:
-        el1_sigma = Inputs["el{}_sigma".format(nr_of_diff_elements)]
-        el1_trans_fkt = Inputs["el{}_trans_fkt".format(nr_of_diff_elements)]
-        el1_IMFP = Inputs["el{}_IMFP".format(nr_of_diff_elements)]
-        el1_factor = el1_sigma * el1_trans_fkt * el1_IMFP
-
-        el2_sigma = Inputs["el{}_sigma".format(nr_of_diff_elements)]
-        el2_trans_fkt = Inputs["el{}_trans_fkt".format(nr_of_diff_elements)]
-        el2_IMFP = Inputs["el{}_IMFP".format(nr_of_diff_elements)]
-        el2_factor = el2_sigma * el2_trans_fkt * el2_IMFP
-
-    if nr_of_diff_elements == 3:
-        el1_sigma = Inputs["el1_sigma"]
-        el1_trans_fkt = Inputs["el1_trans_fkt"]
-        el1_IMFP = Inputs["el1_IMFP"]
-        el1_factor = el1_sigma * el1_trans_fkt * el1_IMFP
-
-        el2_sigma = Inputs["el2_sigma"]
-        el2_trans_fkt = Inputs["el2_trans_fkt"]
-        el2_IMFP = Inputs["el2_IMFP"]
-        el2_factor = el2_sigma * el2_trans_fkt * el2_IMFP
-
-    df_ratio_abs = {}
-    df_ratio_perc = {}
-
-    for i in range(int(number_of_spectra)):
-        spectra_i = "spectra_" + str(i)
-        df_ratio_perc[spectra_i] = float(format((df_1[spectra_i] * el1_factor) / (
-                    df_1[spectra_i] * el1_factor + df_2[spectra_i] * el2_factor), '.2f'))
-        df_ratio_abs[spectra_i] = float(format((df_1[spectra_i] * el1_factor) / (df_2[spectra_i] * el2_factor), '.2f'))
-
-    if nr_of_diff_elements == 3 and Inputs["matrix_bool"] == True:
-        print("yasy")
-        for n in range(5000):
-            for i in range(int(number_of_spectra)):
-                spectra_i = "spectra_" + str(i)
-
-                ratio_lower_limit = 1000  # necessary since floats have to big errors when substracted
-                while df_ratio_perc[spectra_i] * 1000 < ratio_lower_limit:
-                    ratio_lower_limit -= 25
-                ratio_lower_limit = ratio_lower_limit / 1000
-
-                el1_IMFP = Inputs["el1_IMFP_{}".format(ratio_lower_limit)]
-                el1_factor = el1_sigma * el1_trans_fkt * el1_IMFP
-                el2_IMFP = Inputs["el2_IMFP_{}".format(ratio_lower_limit)]
-                el2_factor = el2_sigma * el2_trans_fkt * el2_IMFP
-
-                df_ratio_perc[spectra_i] = float(format((df_1[spectra_i] * el1_factor) / (
-                            df_1[spectra_i] * el1_factor + df_2[spectra_i] * el2_factor), '.2f'))
-                df_ratio_abs[spectra_i] = float(format((df_1[spectra_i] * el1_factor) / (df_2[spectra_i] * el2_factor), '.2f'))
-    return df_ratio_perc, df_ratio_abs
-
-
-def error_calc(df_1, df_2, df_ratio_perc, Inputs):
-    """
-    If you have an error estimation of your fit: then include this part here..
-    if not, then not.. also export it by hand.. at the moment. so thats it not mandatory
-    -----------------------------------------------------------------------
-    """
-    number_of_spectra = Inputs["number_of_spectra"]
-
-    if Inputs["error_estimation"] == True:
-        df_ratio_error_pos = {}
-        df_ratio_error_neg = {}
-        df_error_el1 = {}
-        df_error_el2 = {}
-        df_ratio_error_pos_diff = {}
-        df_ratio_error_neg_diff = {}
-
-        for i in range(int(number_of_spectra)):
-            spectra_i = "spectra_" + str(i)
-
-            df_error_el1[spectra_i] = Inputs["error_el1"][i]
-            df_error_el2[spectra_i] = Inputs["error_el2"][i]
-            error_factor_min = 1.2 * 1.1 * 1.05
-            error_factor_max = 0.8 * 0.9 * 0.95
-
-            df_ratio_error_pos[spectra_i] = float(
-                format((df_1[spectra_i] * el1_factor * (1 - df_error_el1[spectra_i] / error_factor_min)) / (
-                        (df_1[spectra_i] * el1_factor * (1 - df_error_el1[spectra_i] / error_factor_min)) +
-                        (df_2[spectra_i] * el2_factor * (1 + df_error_el2[spectra_i] / error_factor_max))), '.2f'))
-
-            df_ratio_error_neg[spectra_i] = float(
-                format((df_1[spectra_i] * el1_factor * (1 + df_error_el1[spectra_i] / error_factor_max)) / (
-                        (df_1[spectra_i] * el1_factor * (1 + df_error_el1[spectra_i] / error_factor_max)) +
-                        (df_2[spectra_i] * el2_factor * (1 - df_error_el2[spectra_i] / error_factor_min))), '.2f'))
-
-            df_ratio_error_pos_diff[spectra_i] = (df_ratio_perc[spectra_i] * 1000 - df_ratio_error_pos[
-                spectra_i] * 1000) / 1000
-            df_ratio_error_neg_diff[spectra_i] = (df_ratio_perc[spectra_i] * 1000 - df_ratio_error_neg[
-                spectra_i] * 1000) / 1000
-
-
-def area_calculations_fkt(df_1_a_sum, df_2_a_sum, Inputs):
-    """
-    This function calls the functions to do all the necessary/possible ratio calculations
-
-    end result:
-        df_1: the ratios / percentage of oxid state from the 1st to 2nd oxid state of the 1st element
-        df_2: the ratios / percentage of oxid state from the 1st to 2nd oxid state of the 2nd element
-        df_tot: the ratios / percentage of elements from the 1st to 2nd element
-    """
-
-    df_1_a_tot, df_1_a_1, df_1_a_2, df_1_a_3 = df_1_a_sum
-    df_2_a_tot, df_2_a_1, df_2_a_2, df_2_a_3 = df_2_a_sum
-
-    df_ratio_perc_1, df_ratio_abs_1 = area_ratio_calc_fkt(df_1_a_1, df_1_a_2, Inputs, 1)
-    df_ratio_perc_2, df_ratio_abs_2 = area_ratio_calc_fkt(df_2_a_1, df_2_a_2, Inputs, 2)
-    df_ratio_perc_tot, df_ratio_abs_tot = area_ratio_calc_fkt(df_1_a_tot, df_2_a_tot, Inputs, 3)
-
-    df_1 = df_ratio_perc_1, df_ratio_abs_1
-    df_2 = df_ratio_perc_2, df_ratio_abs_2
-    df_tot = df_ratio_perc_tot, df_ratio_abs_tot
-    return df_1, df_2, df_tot
-
-
-"""-------------- center cals --------------------"""
 
 
 def param_center_sorting_fkt(pars, Inputs, element_number):
@@ -274,79 +158,407 @@ def param_center_sorting_fkt(pars, Inputs, element_number):
 
 
 def oxid_state_center_sort_fkt(pars_df, Inputs, element_number):
-
+    """
+    fkt to sort all the centers of the peaks according to the 'oxid_and_corelvl_sorting'-list and the corresponding
+    spin-orbit-splitting and put them into a container
+    """
     number_of_spectra = Inputs["number_of_spectra"]
     number_of_peaks = Inputs["el{}_number_of_peaks".format(element_number)]
     oxid_core_lvl_list = Inputs["el{}_oxid_and_corelvl_sorting".format(element_number)]
     df_o_0_0 = {}
     df_o_1_0 = {}
     df_o_2_0 = {}
+    df_o_3_0 = {}
+    df_o_4_0 = {}
+
     df_o_0_1 = {}
     df_o_1_1 = {}
     df_o_2_1 = {}
+    df_o_3_1 = {}
+    df_o_4_1 = {}
+
 
     center = {}
     for i in range(int(number_of_spectra)):
         spectra_i = "spectra_" + str(i)
 
         # setting the area to 0 at the beginning for each spectra
-        for o in range(
-                6):  # IF you are changing the number of oxid states to greater than 2x3, then update here as well!
+        for o in range(10):  # IF you are changing the number of oxid states to greater than 2x3, then update here as well!
             center[o] = 0
 
         for name in pars_df[spectra_i]:
             for idx in range(number_of_peaks):
-                if f'p{i}_{idx}' in name and center[oxid_core_lvl_list[idx]] == 0 :
+                if f'p{i}_{idx}_' in name and center[oxid_core_lvl_list[idx]] == 0 :
                     center[oxid_core_lvl_list[idx]] = center[oxid_core_lvl_list[idx]] + pars_df[spectra_i][name]
 
         df_o_0_0[spectra_i] = center[0]
         df_o_1_0[spectra_i] = center[1]
         df_o_2_0[spectra_i] = center[2]
+        df_o_3_0[spectra_i] = center[3]
+        df_o_4_0[spectra_i] = center[4]
 
-        df_o_0_1[spectra_i] = center[3]
-        df_o_1_1[spectra_i] = center[4]
-        df_o_2_1[spectra_i] = center[5]
-    df_container = df_o_0_0, df_o_1_0, df_o_2_0
-    df_container2 = df_o_0_1, df_o_1_1, df_o_2_1
+        df_o_0_1[spectra_i] = center[5]
+        df_o_1_1[spectra_i] = center[6]
+        df_o_2_1[spectra_i] = center[7]
+        df_o_3_1[spectra_i] = center[8]
+        df_o_4_1[spectra_i] = center[9]
+    df_container = df_o_0_0, df_o_1_0, df_o_2_0, df_o_3_0, df_o_4_0
+    df_container2 = df_o_0_1, df_o_1_1, df_o_2_1, df_o_3_1, df_o_4_1
     return df_container, df_container2
 
 
-def center_shift_between_2_df_calc_fkt(df_1, df_2, number_of_spectra):
-    """
-    This function cals the energy shift of an oxidstate towards the other df
-    """
-    df = {}
-    for i in range(int(number_of_spectra)):
-        spectra_i = "spectra_"+str(i)
-        df[spectra_i] = df_2[spectra_i] - df_1[spectra_i]
-    return df
+"""------------all fkt´s for Ratio_calc_ana - Area part ---------------------"""
 
 
-def center_shift_intern_df_calc_fkt(df_1, number_of_spectra):
+def ratio_calc_choice():
     """
-    This function cals the energy shift of an oxidstate towards the first spectras oxid state the other df
+    fkt to chose which area calculation should be done:
+    - the ratio of different oxid states 'within'(0) a specific element,
+    - the ratio of an elements specific oxid state to other 'samples'(1) same oxid state
+    - 'between'(2) different elements
+    - a 'gradient' (3) between between two elements (list of IMFP´s needed)
+    - or the 'error' (4) of a gradient between between two elements (list of IMFP´s & error´s needed!!!)
     """
-    df = {}
-    for i in range(int(number_of_spectra)):
-        spectra_i = "spectra_"+str(i)
-        df[spectra_i] = df_1[spectra_i] - df_1["spectra_0"]
-    return df
+    ratio_choice_bool = False
+    while not ratio_choice_bool:
+        ratio_choice = input(
+            "Please choose if you want to calc: \n"
+            "- the ratio of different oxid states 'within'(0) a specific element,\n"
+            "- the ratio of an elements specific oxid state to other 'samples'(1) same oxid state \n"
+            "- 'between'(2) different elements \n "
+            "- a 'gradient' (3) between between two elements (list of IMFP´s needed)\n"
+            "- or the 'error' (4) of a gradient between between two elements (list of IMFP´s & error´s needed!!!)\n"
+            "please enter either the words or number\n")
+        if (ratio_choice.lower() == "within") or ratio_choice == "0":
+            ratio_choice = 0
+            return ratio_choice
+        elif (ratio_choice.lower() == "sample") or ratio_choice == "1":
+            ratio_choice = 1
+            return ratio_choice
+        elif (ratio_choice.lower() == "between") or ratio_choice == "2":
+            ratio_choice = 2
+            return ratio_choice
+        elif (ratio_choice.lower() == "gradient") or ratio_choice == "3":
+            ratio_choice = 3
+            return ratio_choice
+        elif (ratio_choice.lower() == "error") or ratio_choice == "4":
+            ratio_choice = 4
+            return ratio_choice
+        else:
+            ratio_choice_bool = False
 
 
-def center_calculations_fkt(df_1_c_sum, df_2_c_sum, Inputs):
-    """
-    This function calls the functions to do all the necessary/possible calculations.
-    end result:
-        df_center_shift_bw_oxid: the energy diff between both 1st main peaks of the oxid states
-        df_center_shift_el1: the shift of all peaks within the first oxid state in dependence of the 1st peaks position of the 1st element
-        df_center_shift_el2: the shift of all peaks within the first oxid state in dependence of the 1st peaks position of the 2nd element
-    """
-    number_of_spectra = Inputs["number_of_spectra"]
-    df_1_c_1, df_1_c_2, df_1_c_3 = df_1_c_sum
-    df_2_c_1, df_2_c_2, df_2_c_3 = df_2_c_sum
+def if_sweep_list_fkt(Inputs,area, el_chosen):
+    if Inputs[str(el_chosen) + "_sweep_list"] is True:
+        el_sweep = pd.read_csv(Inputs[str(el_chosen) + "_sweep_list_path"], skiprows=Inputs["skip_rows"],
+                                 delim_whitespace=True, header=None)
+    else:
+        el_sweep = pd.DataFrame(data=np.zeros((len(area), 2)))
+        for i in range(len(area)):
+            el_sweep.loc[i, 0] = "S" + str(i)
+            el_sweep.loc[i, 1] = Inputs[str(el_chosen) + "_sweep"]
+    return el_sweep
 
-    df_center_shift_bw_oxid = center_shift_between_2_df_calc_fkt(df_1_c_1, df_1_c_2, number_of_spectra)
-    df_center_shift_el1 = center_shift_intern_df_calc_fkt(df_1_c_1, number_of_spectra)
-    df_center_shift_el2 = center_shift_intern_df_calc_fkt(df_2_c_1, number_of_spectra)
 
-    return df_center_shift_bw_oxid, df_center_shift_el1, df_center_shift_el2
+def if_IMFP_list_fkt(Inputs,area, el_chosen, oxid):
+    if Inputs[str(el_chosen) + "_IMFP_list"] is True:
+        el_IMFP = pd.read_csv(Inputs[str(el_chosen) + "_IMFP_list_path"], skiprows=Inputs["skip_rows"],
+                                 delim_whitespace=True, header=None)
+    else:
+        el_IMFP = pd.DataFrame(data=np.zeros((len(area), 2)))
+        for i in range(len(area)):
+            el_IMFP.loc[i, 0] = "S" + str(i)
+            el_IMFP.loc[i, 1] = Inputs[str(el_chosen) + "_IMFP"][oxid]
+    return el_IMFP
+
+
+def if_error_list_fkt(Inputs,area, el_chosen):
+    if Inputs[str(el_chosen) + "_error_list"] is True:
+        el_error = pd.read_csv(Inputs[str(el_chosen) + "_error_list_path"], skiprows=Inputs["skip_rows"],
+                                 delim_whitespace=True, header=None)
+    else:
+        el_error = pd.DataFrame(data=np.zeros((len(area), 2)))
+        for i in range(len(area)):
+            el_error.loc[i, 0] = "S" + str(i)
+            el_error.loc[i, 1] = Inputs[str(el_chosen) + "_error"]
+    return el_error
+
+
+def oxid_ratio_clac_fkt(Inputs, df):
+    """
+    fkt which calculates the ratio between the desired oxid sates of the chosen element
+    """
+    el_list = Inputs["el_list"]
+    el_to_calc = int(input("please enter the nr of the el according to " + str(el_list) + " in the type of [0,1,2...]"))
+    print("Please enter the oxid state you want to calc [1-3].\nIf you want to have the ratio of an element in "
+          "regards to the total area type '0' for that element ([tot, ox_1, ox_2, ox_3] in the type of [0,1,"
+          "2...])\n They will be calculated by 'ox_1/ox_2' & 'ox_1/(ox1_ox2)'")
+    oxid_1 = int(input("please enter the 1st oxid state you want to calc"))
+    oxid_2 = int(input("please enter the 2nd oxid state you want to calc"))
+    el_chosen = el_list[el_to_calc]
+
+    area_1 = df[el_chosen][oxid_1 + 1]          # the +1 is necessary, since the 0th column is S00 etc
+    area_2 = df[el_chosen][oxid_2 + 1]
+    # check if there is a list of sweeps, if yes load it, if not create a df with the static sweep written into it
+    el_sweep = if_sweep_list_fkt(Inputs, area_1, el_chosen)
+    el_1_IMFP = if_IMFP_list_fkt(Inputs, area_1, el_chosen, oxid_1)
+    el_2_IMFP = if_IMFP_list_fkt(Inputs, area_2, el_chosen, oxid_2)
+
+    ox_factor = pd.DataFrame(data=np.zeros((len(area_1), len(Inputs[str(el_chosen) + "_sigma"]))))
+    for i in range(len(area_1)):
+        ox_factor.loc[i, 0] = "S" + str(i)
+        ox_factor.loc[i, oxid_1] = (Inputs[str(el_chosen) + "_sigma"][oxid_1] * Inputs[str(el_chosen) + "_TF"] *
+                   el_1_IMFP[1][i] * el_sweep[1][i])
+        ox_factor.loc[i, oxid_2] = (Inputs[str(el_chosen) + "_sigma"][oxid_2] * Inputs[str(el_chosen) + "_TF"] *
+                   el_2_IMFP[1][i] * el_sweep[1][i])
+
+    ratio_tot = [0]*len(area_2)
+    ratio_perc = [0]*len(area_2)
+    for i in range(len(area_1)):
+        ratio_tot[i] = ((area_1[i] / ox_factor.loc[i, oxid_1]) / (area_2[i] / ox_factor.loc[i, oxid_2]))
+        ratio_perc[i] = (area_1[i] / ox_factor.loc[i, oxid_1]) / ((area_1[i] / ox_factor.loc[i, oxid_1])
+                                                               + (area_2[i] / ox_factor.loc[i, oxid_2]))
+    return ratio_tot, ratio_perc, el_to_calc, oxid_1, oxid_2
+
+
+def el_within_calc_fkt(Inputs, df):
+    """
+    fkt which calculates the ratio between samples itsef, of a desired oxid sates of the chosen element
+    """
+    el_list = Inputs["el_list"]
+    el_to_calc = int(input("please enter the nr of el according to " + str(el_list) + " in the type of [0,1,2...]"))
+    print("Please enter the oxid state you want to analyze the ratio within the chosen element [1-3].\n"
+          "If you want to have the ratio of the the total areas type '0' for that element ([tot, ox_1, ox_2, ox_3] in "
+          "the type of [0,1,2...])\n")
+    oxid = int(input("Please enter the oxid state you want to calc"))
+
+    el_chosen = el_list[el_to_calc]
+    area = df[el_chosen][int(oxid)+1]
+    df_len = len(df[el_chosen])
+    df_mat = {}
+    for i in range(df_len):
+        for j in range(df_len):
+            df_mat[j + (df_len * i)] = area[i] / area[j]
+    return df_mat, el_to_calc, oxid
+
+
+def el_ratio_calc_fkt(Inputs, df):
+    """
+    this function calculates the ratio between 2 chosen elements taking the area_tot of the first spin-orbit splitting
+    one can choose an element from the list written in the ratio-calc.yaml file. then  it takes the needed parameters
+    from it.
+    If one has different sweeps for different measurement one can put it into a file and this will be called then.
+    it then calc the ratio and percentage ratio of the chosen element
+    """
+    el_list = Inputs["el_list"]
+    element_1 = int(input("please enter the nr of the 1st element according to " + str(el_list) +
+                          " in the type of [0,1,2...]"))
+    element_2 = int(input("please enter the nr of the 2nd element according to " + str(el_list) +
+                          " in the type of [0,1,2...]"))
+    el_chosen_1 = el_list[element_1]
+    el_chosen_2 = el_list[element_2]
+    area_1 = df[el_list[element_1]][1]
+    area_2 = df[el_list[element_2]][1]
+
+    # check if there is a list of sweeps, if yes load it, if not create a df with the static sweep written into it
+    el_1_sweep = if_sweep_list_fkt(Inputs, area_1, el_chosen_1)
+    el_2_sweep = if_sweep_list_fkt(Inputs, area_2, el_chosen_2)
+    el_1_IMFP = if_IMFP_list_fkt(Inputs, area_1, el_chosen_1, 0)
+    el_2_IMFP = if_IMFP_list_fkt(Inputs, area_2, el_chosen_2, 0)
+
+    el_1_factor = pd.DataFrame(data=np.zeros((len(area_1), 2)))
+    for i in range(len(area_1)):
+        el_1_factor.loc[i, 0] = "S" + str(i)
+        el_1_factor.loc[i, 1] = (Inputs[str(el_chosen_1) + "_sigma"][0] * Inputs[str(el_chosen_1) + "_TF"] *
+                   el_1_IMFP[1][i] * el_1_sweep[1][i])
+
+    el_2_factor = pd.DataFrame(data=np.zeros((len(area_2), 2)))
+    for i in range(len(area_1)):
+        el_2_factor.loc[i, 0] = "S" + str(i)
+        el_2_factor.loc[i, 1] = (Inputs[str(el_chosen_2) + "_sigma"][0] * Inputs[str(el_chosen_2) + "_TF"] *
+                   el_2_IMFP[1][i] * el_2_sweep[1][i])
+
+
+    ratio_tot = [0]*len(area_2)
+    ratio_perc = [0]*len(area_2)
+    for i in range(len(area_1)):
+        ratio_tot[i] = ((area_1[i] / el_1_factor.loc[i, 1]) / (area_2[i] / el_2_factor.loc[i, 1]))
+        ratio_perc[i] = (area_1[i] / el_1_factor.loc[i, 1]) / ((area_1[i] / el_1_factor.loc[i, 1])
+                                                               + (area_2[i] / el_2_factor.loc[i, 1]))
+
+    return ratio_tot, ratio_perc, element_1, element_2
+
+
+def el_gradient_ratio_calc_fkt(Inputs, df):
+    """
+    This function calculates the gradiental ratio between 2 chosen elements (with the changing IMFP´s for each ratio)
+    You can choose an element from the list written in the ratio-calc.yaml file. then  it takes the needed parameters
+    from it.
+    If one has different sweeps for different measurement one can put it into a file and this will be called then.
+    it then calc the ratio and percentage ratio of the chosen element.
+    """
+    el_list = Inputs["el_list"]
+    element_1 = int(input("please enter the nr of the 1st element according to " + str(el_list) +
+                          " in the type of [0,1,2...]"))
+    element_2 = int(input("please enter the nr of the 2nd element according to " + str(el_list) +
+                          " in the type of [0,1,2...]"))
+    el_chosen_1 = el_list[element_1]
+    el_chosen_2 = el_list[element_2]
+    area_1 = df[el_list[element_1]][1]
+    area_2 = df[el_list[element_2]][1]
+
+    # check if there is a list of sweeps, if yes load it, if not create a df with the static sweep written into it
+    el_1_sweep = if_sweep_list_fkt(Inputs, area_1, el_chosen_1)
+    el_2_sweep = if_sweep_list_fkt(Inputs, area_2, el_chosen_2)
+    el_1_IMFP = if_IMFP_list_fkt(Inputs, area_1, el_chosen_1, 0)
+    el_2_IMFP = if_IMFP_list_fkt(Inputs, area_2, el_chosen_2, 0)
+
+    el_1_factor = pd.DataFrame(data=np.zeros((len(area_1), 2)))
+    for i in range(len(area_1)):
+        el_1_factor.loc[i, 0] = "S" + str(i)
+        el_1_factor.loc[i, 1] = (Inputs[str(el_chosen_1) + "_sigma"][0] * Inputs[str(el_chosen_1) + "_TF"] *
+                   el_1_IMFP[1][i] * el_1_sweep[1][i])
+
+    el_2_factor = pd.DataFrame(data=np.zeros((len(area_2), 2)))
+    for i in range(len(area_1)):
+        el_2_factor.loc[i, 0] = "S" + str(i)
+        el_2_factor.loc[i, 1] = (Inputs[str(el_chosen_2) + "_sigma"][0] * Inputs[str(el_chosen_2) + "_TF"] *
+                   el_2_IMFP[1][i] * el_2_sweep[1][i])
+
+    ratio_tot = [0]*len(area_2)
+    ratio_perc = [0]*len(area_2)
+    for i in range(len(area_1)):
+        ratio_tot[i] = ((area_1[i] / el_1_factor.loc[i, 1]) / (area_2[i] / el_2_factor.loc[i, 1]))
+        ratio_perc[i] = (area_1[i] / el_1_factor.loc[i, 1]) / ((area_1[i] / el_1_factor.loc[i, 1])
+                                                               + (area_2[i] / el_2_factor.loc[i, 1]))
+
+    for n in range(5000):
+        for i in range(len(area_1)):
+
+            ratio_lower_limit = 1000  # necessary since floats have to big errors when substracted
+            while ratio_perc[i] * 1000 < ratio_lower_limit:
+                ratio_lower_limit -= 25
+            ratio_lower_limit = ratio_lower_limit / 1000
+
+            for j in range(len(el_2_IMFP)):
+                if el_1_IMFP[0][j] == ratio_lower_limit:
+                    el_1_IMFP_j = el_1_IMFP[1][j]
+                    el_2_IMFP_j = el_2_IMFP[1][j]
+
+
+            el_1_factor.loc[i, 1] = (Inputs[str(el_chosen_1) + "_sigma"][0] * Inputs[str(el_chosen_1) + "_TF"] *
+                                         el_1_IMFP_j[1][i] * el_1_sweep[1][i])
+            el_2_factor.loc[i, 1] = (Inputs[str(el_chosen_2) + "_sigma"][0] * Inputs[str(el_chosen_2) + "_TF"] *
+                                     el_2_IMFP_j[1][i] * el_2_sweep[1][i])
+
+            ratio_tot[i] = float(format(((area_1[i] / el_1_factor.loc[i, 1]) / (area_2[i] / el_2_factor.loc[i, 1]))
+                                        , '.2f'))
+            ratio_perc[i] = float(format(((area_1[i] / el_1_factor.loc[i, 1]) / ((area_1[i] / el_1_factor.loc[i, 1])
+                                                                   + (area_2[i] / el_2_factor.loc[i, 1]))), '.2f'))
+
+    return ratio_tot, ratio_perc, element_1, element_2, el_1_factor, el_2_factor
+
+
+def el_gradient_error_calc_fkt(Inputs, df, el_1, el_2, ratio_perc,  el_1_factor, el_2_factor):
+    """
+    this function calculates the ratio between 2 chosen elements
+    one can choose an element from the list written in the ratio-calc.yaml file. then  it takes the needed parameters
+    from it.
+    If one has different sweeps for different measurement one can put it into a file and this will be called then.
+    it then calc the ratio and percentage ratio of the chosen element
+    """
+    el_list = Inputs["el_list"]
+    el_chosen_1 = el_list[el_1]
+    el_chosen_2 = el_list[el_2]
+    area_1 = df[el_list[el_1]][1]
+    area_2 = df[el_list[el_2]][1]
+
+    # check if there is a list of sweeps, if yes load it, if not create a df with the static sweep written into it
+    el_1_error = if_error_list_fkt(Inputs, area_1, el_chosen_1)
+    el_2_error = if_error_list_fkt(Inputs, area_2, el_chosen_2)
+
+    df_ratio_error_pos = {}
+    df_ratio_error_neg = {}
+
+    ratio_error_pos_diff = {}
+    ratio_error_neg_diff = {}
+    for i in range(len(area_1)):
+        error_factor_min = 1.2 * 1.1 * 1.05
+        error_factor_max = 0.8 * 0.9 * 0.95
+
+        df_ratio_error_pos[i] = float(
+            format((area_1[i] * el_1_factor * (1 - el_1_error[i] / error_factor_min)) / (
+                    (area_1[i] * el_1_factor * (1 - el_1_error[i] / error_factor_min)) +
+                    (area_2[i] * el_2_factor * (1 + el_2_error[i] / error_factor_max))), '.2f'))
+
+        df_ratio_error_neg[i] = float(
+            format((area_1[i] * el_1_factor * (1 + el_1_error[i] / error_factor_max)) / (
+                    (area_1[i] * el_1_factor * (1 + el_1_error[i] / error_factor_max)) +
+                    (area_2[i] * el_2_factor * (1 - el_2_error[i] / error_factor_min))), '.2f'))
+
+        ratio_error_pos_diff[i] = (ratio_perc[i] * 1000 - df_ratio_error_pos[i] * 1000) / 1000
+        ratio_error_neg_diff[i] = (ratio_perc[i] * 1000 - df_ratio_error_neg[i] * 1000) / 1000
+
+    return ratio_error_pos_diff, ratio_error_neg_diff
+
+"""------------all fkt´s for Ratio_calc_ana - center part ---------------------"""
+
+
+def center_shift_fkt_choice():
+    """
+    fkt to chose which center calculation should be done:
+    - the shift of an oxid state compared to 'itself'(0) along the sample
+    - the shift 'between'(1) different oxid states (1st main peak used)
+    """
+    shift_choice_bool = False
+    while not shift_choice_bool:
+        shift_choice = input(
+            "Please choose if you want to calc: \n"
+            "- the shift of an oxid state compared to 'itself'(0) along the sample ,\n"
+            "- the shift 'between'(1) different oxid states (1st main peak used) \n "
+            "please enter either the words or number\n")
+        if (shift_choice.lower() == "itself") or shift_choice == "0":
+            ratio_choice = 0
+            return ratio_choice
+        elif (shift_choice.lower() == "between") or shift_choice == "1":
+            ratio_choice = 1
+            return ratio_choice
+        else:
+            shift_choice_bool = False
+
+
+def center_shift_self_fkt(Inputs, df):
+    """
+    fkt to calc the shift of all samples of a chosen oxid state compared to the first
+    """
+    el_list = Inputs["el_list"]
+    el_to_calc = int(input("please enter the nr of the el according to " + str(el_list) + " in the type of [0,1,2...]"))
+    el_chosen = el_list[el_to_calc]
+    oxid = int(input("Please enter the oxid state you want to calc according to " + str(Inputs[el_chosen+"_label_list"])
+                     + "\n in the type of [0,1,2...]"))
+
+    center = df[el_chosen][oxid + 1]  # the +1 is necessary, since the 0th column is S00 etc
+    center_shift = center.copy()
+
+    center_shift = center_shift - center[0]
+    return center_shift, el_to_calc, oxid
+
+
+def center_shift_bewteen_fkt(Inputs, df):
+    """
+    fkt to calc the shift between 2 chosen oxid states of the same sample (for all samples)
+    """
+    el_list = Inputs["el_list"]
+    el_to_calc = int(input("please enter the nr of the el according to " + str(el_list) + " in the type of [0,1,2...]"))
+    el_chosen = el_list[el_to_calc]
+    print("Please enter the oxid states you want to calc according to " + str(Inputs[el_chosen+"_label_list"]) + "\n in"
+          " the type of [0,1,2...].\n")
+    oxid_1 = int(input("please enter the 1st oxid state you want to calc"))
+    oxid_2 = int(input("please enter the 2nd oxid state you want to calc"))
+
+    center_1 = center = df[el_chosen][oxid_1 + 1]
+    center_2 = center = df[el_chosen][oxid_2 + 1]
+
+    center_diff = center_1 - center_2
+    return center_diff, el_to_calc, oxid_1, oxid_2
+

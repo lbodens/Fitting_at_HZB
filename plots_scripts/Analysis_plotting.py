@@ -1,3 +1,8 @@
+"""
+sub-file with all the functions put together who have something to do with data plotting from the analysis scripts
+
+"""
+
 import lmfit.models
 import matplotlib.pyplot as plt
 import matplotlib.colors as col
@@ -8,6 +13,8 @@ from plots_scripts.Data_loader import dat_merger_single_file_fkt, dat_merger_mul
 from plots_scripts.Fitting_functions import y_for_fit
 from plots_scripts.Shirley_fkt_build import peak_model_build_main_fkt
 from plots_scripts.Plotting_functions import model_separator_eval_fkt
+
+"""----------------------------Analysis_data_exporting---------------------"""
 
 
 def param_into_pars_and_sorting(params):
@@ -33,6 +40,9 @@ def param_into_pars_and_sorting(params):
 
 
 def spectra_and_and_model_generator(Inputs, element_number):
+    """
+    This function creates the all the necessary variables for plotting (all sepctra (y) into a df 'd', the x-axis etc
+    """
     file_type = Inputs["el{}_folder_or_file".format(element_number)]
     skip_rows = Inputs["el{}_skip_rows".format(element_number)]
     txt = Inputs["el{}_txt_or_dat".format(element_number)]
@@ -52,6 +62,41 @@ def spectra_and_and_model_generator(Inputs, element_number):
     mod_d, number_of_peaks, peak_func = peak_model_build_main_fkt(d, Inputs, element_number)
 
     return d, x, y_d, mod_d, peak_func
+
+
+def export_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_eval, Inputs, element_number, spectra_to_plot):
+    """
+    This function plots the wanted spectra with the peak-colours assigned to the ones belonging together
+    """
+    number_of_peaks = Inputs["el{}_number_of_peaks".format(element_number)]
+    color_list = Inputs["color_list"]
+    label_list = Inputs["label_list"]
+    oxid_sorting = Inputs["el{}_oxid_and_corelvl_sorting".format(element_number)]
+
+    fig, axs = plt.subplots()
+    axs.plot(x, y_d[spectra_to_plot], 'black', label='data_{}_S{}'.format(element_number, spectra_to_plot))
+    axs.plot(x, mod_d_eval[spectra_to_plot], 'r', label='fit')
+
+    check_list = [0] * len(label_list)
+    for idx in range(int(number_of_peaks)):
+        if check_list[oxid_sorting[idx]] == 0:
+            axs.plot(x, mod_w_sBG_peaks_eval[f'spectra_{spectra_to_plot}'][f'p_{idx}'],
+                     label=label_list[oxid_sorting[idx]], color=color_list[oxid_sorting[idx]])
+            check_list[oxid_sorting[idx]] = 1
+        if check_list[oxid_sorting[idx]] == 1:
+            axs.plot(x, mod_w_sBG_peaks_eval[f'spectra_{spectra_to_plot}'][f'p_{idx}'],
+                     color=color_list[oxid_sorting[idx]])
+
+    axs.plot(x, shirley_BG_d[f"spectra_{spectra_to_plot}"], color='grey', linestyle='dashed', label='shirley')
+
+    plt.xlim([max(x), min(x)])
+    plt.legend(axs.lines[:5], label_list)
+    plt.legend(loc='best')
+    plt.show()
+    return
+
+
+"""------------------other stuff????----------------------"""
 
 
 def other_spectra_loader(Inputs):
