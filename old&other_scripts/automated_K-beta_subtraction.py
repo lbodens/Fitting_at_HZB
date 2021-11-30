@@ -110,40 +110,45 @@ def round_up(n, decimals=0):
 # script input
 
 # select file path, with verification, if its the correct one
-#selected_path_check = False
+# selected_path_check = False
 # while selected_path_check == False:
 selected_file_path_1st = input(
-        "Please enter your file path for 1st Spectra in python writng style like d:\\\\path\\\\here\\\\")
+    "Please enter your file path for 1st Spectra (source of the peak) in python writing style like "
+    "d:\\\\path\\\\here\\\\")
 ##    selected_path_check = correct_selected_path_fkt(selected_file_path_1st)
 
-#selected_file_check = False
-#while selected_file_check == False:
+# selected_file_check = False
+# while selected_file_check == False:
 selected_file_name_1st = input(
-        "Please enter your file name of 1st Spectra but w/o the '.txt' \nMake sure, that there are no empty columns (nr of filled columns are the same)!\n")
+    "Please enter your file name of 1st Spectra (source of the peak) but w/o the '.txt' "
+    "\nMake sure, that there are no empty columns (nr of filled columns are the same)!\n")
 #    selected_file_check = correct_selected_file_fkt(selected_file_name_1st)
 
-#selected_path_check = False
-#while selected_path_check == False:
+# selected_path_check = False
+# while selected_path_check == False:
 selected_file_path_Kb = input(
-        "Please enter your file path for K_beta Spectra in python writng style like d:\\\\path\\\\here\\\\")
+    "Please enter your file path for K_beta Spectra in python writing style like d:\\\\path\\\\here\\\\")
 #    selected_path_check = correct_selected_path_fkt(selected_file_path_Kb)
 
-#selected_file_check = False
-#while selected_file_check == False:
+# selected_file_check = False
+# while selected_file_check == False:
 selected_file_name_Kb = input(
-        "Please enter your file name of K_beta Spectra but w/o the '.txt' \nMake sure, that there are no empty columns (nr of filled columns are the same)!\n")
+    "Please enter your file name of K_beta Spectra but w/o the '.txt' "
+    "\nMake sure, that there are no empty columns (nr of filled columns are the same)!\n")
 #    selected_file_check = correct_selected_file_fkt(selected_file_name_Kb)
 
-#selected_path_check = False
-#while selected_path_check == False:
+# selected_path_check = False
+# while selected_path_check == False:
 selected_file_path_2nd = input(
-        "Please enter your file path for 2nd Spectra in python writng style like d:\\\\path\\\\here\\\\")
+    "Please enter your file path for 2nd Spectra (from which the peak gets subtracted) in python writing "
+    "style like d:\\\\path\\\\here\\\\")
 #    selected_path_check = correct_selected_path_fkt(selected_file_path_2nd)
 
-#selected_file_check = False
-#while selected_file_check == False:
+# selected_file_check = False
+# while selected_file_check == False:
 selected_file_name_2nd = input(
-        "Please enter your file name of 2nd Spectra but w/o the '.txt' \nMake sure, that there are no empty columns (nr of filled columns are the same)!\n")
+    "Please enter your file name of 2nd Spectra (from which the peak gets subtracted) but w/o the '.txt' "
+    "\nMake sure, that there are no empty columns (nr of filled columns are the same)!\n")
 #    selected_file_check = correct_selected_file_fkt(selected_file_name_2nd)
 
 txt_or_dat = input("are you using .txt files or .dat files? Please enter 'txt' or 'dat'")
@@ -168,8 +173,8 @@ df_2nd = pd.read_csv(full_path_input_2nd, skiprows=0,
 
 selected_peaknr_check = False
 while selected_peaknr_check == False:
-    peak_nr_1st = input(
-        "please enter if the 1st spectra is a doublet or singulet. If doublett, enter 'double' if singulet : 'single':\n")
+    peak_nr_1st = input("please enter if the 1st spectra is a doublet or singlet. "
+                        "If doublett, enter 'double' if singulet : 'single':\n")
     selected_peaknr_check = correct_selected_peak_nr_fkt(peak_nr_1st)
 ################################################
 # getting right K-Beta values
@@ -187,7 +192,7 @@ while i < df_Kb.shape[0]:
     i += 1
 
 # flipping Kbeta spectra around, that highest value is on top of list
-df_Kb_length = df_Kb.shape[0]  # getting lenght (nr of rows) of data frame ([1] would be nr of columns)
+df_Kb_length = df_Kb.shape[0]  # getting length (nr of rows) of data frame ([1] would be nr of columns)
 if df_Kb["E"][0] < df_Kb["E"][df_Kb_length - 1]:
     df_Kb = df_Kb.iloc[::-1]
 
@@ -195,7 +200,7 @@ if df_Kb["E"][0] < df_Kb["E"][df_Kb_length - 1]:
 df_Kb_length = df_Kb.shape[0]
 max_intensity_Kb = float(df_Kb.iloc[:, [1]].max())
 m = 1
-while m < df_Kb_length:  # go over all entries in colum to find the position of max
+while m < df_Kb_length:  # go over all entries in column to find the position of max
     if float(df_Kb.iloc[m][1]) == max_intensity_Kb:  # get corresponding BE
         e_to_max_intensity_Kb = df_Kb.iloc[m][0]  # and save it as value
         m_Kb = m
@@ -203,9 +208,27 @@ while m < df_Kb_length:  # go over all entries in colum to find the position of 
     else:
         m += 1
 
-# global df, with which are worked in the loop, but should not be recreatet/overridden every time
+# global df, with which are worked in the loop, but should not be recreated/overridden every time
 df_Kb_2nd_E_shift = df_2nd.copy()
 df_2nd_Kb_subtr = df_2nd.copy()
+
+
+# getting the position between the doublet, that the script later can find both peak positions
+if peak_nr_1st == "double":
+    # getting max of peaks and min of spectra to calculate actual peak height
+    df_1st_length = df_1st.shape[0]
+
+    # set the regions at which the peak max is looked for
+    boundary_energy = input(
+        "please enter the boundary which is between both peaks in eV with XX.X5 (to make sure its in the file)\n")
+    w = 0
+    while w < df_1st_length:  # go over all entries in column to find the position of max
+        if float(df_1st.iloc[w][0]) == float(boundary_energy):  # get corresponding BE
+            boundary_position = w
+            break
+        else:
+            w += 1
+
 
 ###################################################################
 # looping over all spectra
@@ -219,19 +242,6 @@ while i < (len(df_1st.columns) - 1):  # go over all columns in sheet
     ##############################
     # working with 1st
     if peak_nr_1st == "double":
-        # getting max of peaks and min of spectra to calculate actual peak height
-        df_1st_length = df_1st.shape[0]
-
-        # set the regions at which the peak max is looked for
-        boundary_energy = input(
-            "please enter the boundary which is between both peaks in eV with XX.X5 (to make sure its in the file)\n")
-        w = 0
-        while w < df_1st_length:  # go over all entries in colum to find the position of max
-            if float(df_1st.iloc[w][0]) == float(boundary_energy):  # get corresponding BE
-                boundary_position = w
-                break
-            else:
-                w += 1
 
         max_intensity_1_2 = float(
             df_1st.iloc[1:int(boundary_position), [i]].max())  # find max in each columns for 1st 1/2
@@ -243,11 +253,11 @@ while i < (len(df_1st.columns) - 1):  # go over all columns in sheet
 
         # get position of max peaks of 1st
         n = 1  # var to get position of peaks in 1st spectra
-        while n < df_1st_length:  # go over all entries in colum to find teh position of max
+        while n < df_1st_length:  # go over all entries in column to find teh position of max
             if float(df_1st.iloc[n][i]) == max_intensity_1_2:  # get corresponding BE
                 e_to_max_intensity_1_2 = df_1st.iloc[n][0]  # and save it as value
                 n_1_2 = n
-                n += 1  # go over all entries in colum to find teh position of max
+                n += 1  # go over all entries in column to find teh position of max
             if float(df_1st.iloc[n][i]) == max_intensity_3_2:  # get corresponding BE
                 e_to_max_intensity_3_2 = df_1st.iloc[n][0]  # and save it as value
                 n_3_2 = n
@@ -264,10 +274,10 @@ while i < (len(df_1st.columns) - 1):  # go over all columns in sheet
 
         # get position of max peaks of 1st
         n = 1  # var to get position of peaks in 1st spectra
-        while n < df_1st_length:  # go over all entries in colum to find teh position of max
+        while n < df_1st_length:  # go over all entries in column to find teh position of max
             if float(df_1st.iloc[n][i]) == max_intensity:  # get corresponding BE
                 e_to_max_intensity = df_1st.iloc[n][0]  # and save it as value
-                break  # go over all entries in colum to find teh position of max
+                break  # go over all entries in column to find teh position of max
             else:
                 n += 1
     ##################################
@@ -315,7 +325,7 @@ while i < (len(df_1st.columns) - 1):  # go over all columns in sheet
     e_max_2nd = df_2nd.iloc[0][0]
 
     j = 1
-    while j < df_Kb_length:  # go over all entries in colum to find the position of max
+    while j < df_Kb_length:  # go over all entries in column to find the position of max
         if float(df_Kb_combined_shifted.iloc[j][0]) == e_max_2nd:  # get position of corresponding E
             y_2nd = j  # save position of it
             break
