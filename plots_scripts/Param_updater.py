@@ -35,7 +35,7 @@ def shirley_param_calc(pars, d, number_of_spectra, number_of_peaks):
             if idx > 0:
                 pars.add(f'p{i}_{idx}_low', value=0, vary=False)
             pars.add(f'p{i}_{idx}_high', expr=f'p{i}_{idx}_low+p{i}_{idx}_delta')
-            print(pars[f'p{i}_{idx}_high'])
+#            print(pars[f'p{i}_{idx}_high'])
     return pars
 
 
