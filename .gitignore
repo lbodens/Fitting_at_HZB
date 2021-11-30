@@ -31,3 +31,7 @@ param_Ni(II)_ref.yaml
 param_Ni(II)_ref_only.yaml
 plots_scripts/__pycache__/
 __pycache__/
+Ni2p_*
+test_param*
+CuNiO/
+CuNiO_200pNi_terminated/
