@@ -46,7 +46,7 @@ def params_via_plot_checking(x, d, y_d, mod_d, peak_func, param_file_type_str, p
                 continue
             if are_pre_params_good_bool == False:
                 plt.close()
-                print("Please change the paramter to the desired one\n")
+                print("Please change the parameter to the desired one\n")
                 continue
         while spectra_to_plot_bool == False:
             other_spectra_check = input("do you want to check other spectra as well?\n")
@@ -55,8 +55,13 @@ def params_via_plot_checking(x, d, y_d, mod_d, peak_func, param_file_type_str, p
                 spectra_to_plot_bool = False
                 are_pre_params_good_bool = False
                 break
-            if other_spectra_check.lower() == "no" or other_spectra_check.lower() == "n":
-                spectra_to_plot_bool = True
-                continue
-
-
+            if not other_spectra_check.lower() == "y" or other_spectra_check.lower() == "yes":
+                try:  # to catch if someone accidently types in the nr directly
+                    int(other_spectra_check)
+                    spectra_to_plot = int(other_spectra_check)
+                    spectra_to_plot_bool = False
+                    are_pre_params_good_bool = False
+                    break
+                except ValueError:
+                    spectra_to_plot_bool = True
+                    continue
