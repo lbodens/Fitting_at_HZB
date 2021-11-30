@@ -1,0 +1,39 @@
+
+  # Inputs for the data file (where all teh spectra are in)
+  path: "d:\\Profile\\...\\area_approach\\"        #if file in same folder as main.py, then the file name is enough
+  file_name: "Data_..."
+  txt_or_dat: ".txt"              # are you using .txt files or .dat files? Please enter '.txt' or '.dat'(dot in the beginning is important!)
+  skip_rows: 0                  # Enter number of rows above the spectra data incl the header line ('# Energy Kinetic' or what ever the header is)
+  BE_or_KE: "BE"                  #"Is the following energy scale in binding (BE) or kinetic (KE)? please enter 'BE' for binding or 'KE' for kinetic\n")
+  KE_excertation_E: 1486.7        # fill in the excertation energy, if you have KE in your data
+
+  # inputs about the peak fits
+  number_of_spectra: 169                      
+  step_size: 0.1                  # the energy step size of the data
+
+  # Inputs about your preset param file
+  param_file_type_str: "yaml"       # or json
+  param_file_name: "D:\\Profile\\...\\Fitting_at_HZB\\Cu_param0-169"
+
+
+  number_of_columns: 13
+  number_of_rows: 13
+
+    # cross section
+  sigma: 14.58                            
+  # transmission function from the analizer
+  trans_fkt: 0.7242                       
+  # init mean free path
+  IMFP: 1198  
+
+
+
+
+
+
+
+  #Inputs for fitting
+  fit_iterations: 5        # max iterations used for fitting
+
+  fit_result_file_path: ".\\results\\Cu_param0-169_fit_res"
+
