@@ -180,9 +180,29 @@ def plotting_fit_single_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_pea
 def plotting_subplots_main_fkt(x, pAfit_s_d, mod_d, y_d, peak_func, number_of_spectra, number_of_peaks):
     mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval = model_separator_eval_fkt(pAfit_s_d, mod_d, peak_func, x,
                                                                                     number_of_spectra, number_of_peaks)
+    plot_input = False
+    x_nr_of_subplt = input("please enter the number of plots you want to see in x-direction")
+    y_nr_of_subplt = input("please enter the number of plots you want to see in y-direction")
+    while not plot_input:
+        try:                                        # to catch if someone accidently types in the nr directly
+            int(x_nr_of_subplt)
+            x_nr_of_subplt = int(x_nr_of_subplt)
+            plot_input_1 = True
+        except ValueError:
+            x_nr_of_subplt = input("please enter the number of plots you want to see in x-direction")
+            plot_input_1 = False
+        try:                                        # to catch if someone accidently types in the nr directly
+            int(y_nr_of_subplt)
+            y_nr_of_subplt = int(y_nr_of_subplt)
+            plot_input_2 = True
+        except ValueError:
+            y_nr_of_subplt = input("please enter the number of plots you want to see in y-direction")
+            plot_input_2 = False
+        if plot_input_1 is True and plot_input_2 is True:
+            plot_input = True
 
-    x_nr_of_subplt = int(input("please enter the number of plots you want to see in x-direction"))
-    y_nr_of_subplt = int(input("please enter the number of plots you want to see in y-direction"))
+
+
     if y_nr_of_subplt * x_nr_of_subplt == 1:
         spectra_to_plot = int(input("Please enter the spectra nr (0 to n-1) which you want to look at:\n"))
         plotting_fit_single_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_p_p_d_eval, number_of_peaks,
