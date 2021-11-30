@@ -53,66 +53,21 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
 
-def correct_selected_path_fkt(path):  # fkt to check, if the path is correct
-    print("\nIs this path:")
-    print(path)
-    print("correct? ")
-    correct_path_check = input("If yes, please write 'yes'. If not: 'no'.\n")
-    if correct_path_check == "yes":
-        path_check = True
-        return path, path_check
-    else:
-        path_check = False
-        return path_check
-
-
-def correct_selected_file_fkt(file_name):  # fkt to check, if the path is correct
-    print("\nIs this file:")
-    print(file_name)
-    print("correct? ")
-    correct_file_check = input("If yes, please write 'yes'. If not: 'no'.\n")
-    if correct_file_check == "yes":
-        file_check = True
-        return file_name, file_check
-    else:
-        file_check = False
-        return file_check
-
-
-def correct_input_fkt(Input):  # fkt to check, if the path is correct
-    print("\nIs this input:")
-    print(Input)
-    print("correct? ")
-    input_check = input("If yes, please write 'yes'. If not: 'no'.\n")
-    if input_check == "yes":
-        input_check = True
-        return Input, input_check
-    else:
-        input_check = False
-        return input_check
-
-
-def file_input_fkt(file_path, file_name, type_of_files, counter):
+def file_input_fkt(file_path, file_name, type_of_files, counter, folder_or_file):
     """ fkt where one can select the file path & name
     if i´t the first time counter ==0, afterwards (the loop section counter ==1)
     in the 2nd part one can choose if he wants to change only the file_name (stay in folder)(0), change the folder (1)
     or both (2)"""
 
     if counter == 0:
-        file_path = input("Please enter your file path in python writing style like d:\\path\\here\\ \n")
         type_of_files = input(
             "please choose the type of files which will be combined. \nIf you want to merge files from the ANA "
             "detector @EMIL (file_name---XX_1_Det[....].txt) please type '1'\n If you want to merge other files of "
             "the type Element_XX.txt please type '2':\n")
 
-        if type_of_files == "1":
-            end_string = "_1-Detector_Region"
-            mid_string = "--"
+    folder_or_file = int(folder_or_file)
 
-        if type_of_files == "2":
-            end_string = ""
-            mid_string = "_"
-
+    if folder_or_file == 0:
         if type_of_files == "1":
             file_name = input(
                 "Please enter your file name like 20200101_123456_Name_of_Stuff but w/o the '---' and everything "
@@ -121,54 +76,26 @@ def file_input_fkt(file_path, file_name, type_of_files, counter):
             file_name = input(
                 "Please enter your file name like Name-of-stuff but w/o the '_' before the digits\n")
 
-    else:
+    if folder_or_file == 1:
+        file_path = input("Please enter your file path in python writing style like d:\\path\\here\\ \n")
 
+    if folder_or_file == 2:
+        file_path = input("Please enter your file path in python writing style like d:\\path\\here\\ \n")
         if type_of_files == "1":
-            end_string = "_1-Detector_Region"
-            mid_string = "--"
-
+            file_name = input(
+                "Please enter your file name like 20200101_123456_Name_of_Stuff but w/o the '---' and everything "
+                "after it(detector region etc.) \n")
         if type_of_files == "2":
-            end_string = ""
-            mid_string = "_"
+            file_name = input(
+                "Please enter your file name like Name-of-stuff but w/o the '_' before the digits\n")
 
-        folder_or_file = input(
-            "Do you want to enter a new file name (0), folder name (1) or both (2)?\n Please enter the corresponding "
-            "number):\n")
-        if (folder_or_file == "0" or folder_or_file == "1") or folder_or_file == "2":
-            check = True
-        else:
-            check = False
+    if type_of_files == "1":
+        end_string = "_1-Detector_Region"
+        mid_string = "--"
 
-        while not check:
-            if (folder_or_file != "0" or folder_or_file != "1") or folder_or_file != "2":
-                print("There was an error with the input:", folder_or_file)
-                folder_or_file = input("there was an error: please enter 0, 1 or 2")
-            if (folder_or_file == "0" or folder_or_file == "1") or folder_or_file == "2":
-                check = True
-
-        folder_or_file = int(folder_or_file)
-
-        if folder_or_file == 0:
-            if type_of_files == "1":
-                file_name = input(
-                    "Please enter your file name like 20200101_123456_Name_of_Stuff but w/o the '---' and everything "
-                    "after it(detector region etc.) \n")
-            if type_of_files == "2":
-                file_name = input(
-                    "Please enter your file name like Name-of-stuff but w/o the '_' before the digits\n")
-
-        if folder_or_file == 1:
-            file_path = input("Please enter your file path in python writing style like d:\\path\\here\\ \n")
-
-        if folder_or_file == 2:
-            file_path = input("Please enter your file path in python writing style like d:\\path\\here\\ \n")
-            if type_of_files == "1":
-                file_name = input(
-                    "Please enter your file name like 20200101_123456_Name_of_Stuff but w/o the '---' and everything "
-                    "after it(detector region etc.) \n")
-            if type_of_files == "2":
-                file_name = input(
-                    "Please enter your file name like Name-of-stuff but w/o the '_' before the digits\n")
+    if type_of_files == "2":
+        end_string = ""
+        mid_string = "_"
 
     return (file_path, file_name, type_of_files, mid_string, end_string)
 
@@ -218,7 +145,7 @@ def regions_fkt():
                                                                              "file here: \n"))
         output[i] = "_" + spectra_name[i] + txt_output
 
-    return (starting_region, last_file_nr, spectra_nr, spectra_name, output)
+    return (starting_region, last_file_nr, spectra_nr, output)
 
 
 def spec_params():
@@ -228,7 +155,7 @@ def spec_params():
         "please enter number of rows above the header line ('# Energy Kinetic' or what ever the header is)\n"))
 
     column_nr = int(input(
-        "please enter the wanted column nr from the files to combine. starting crounting from 1!\n(Normally 2 for "
+        "please enter the wanted column nr from the files to combine. starting counting from 1!\n(Normally 2 for "
         "EMIL files. But can be changed for all) \n"))
 
     return (skip_row_nr, column_nr)
@@ -309,31 +236,52 @@ def file_output(file_path, file_name, output, df):
 file_path = ""
 file_name = ""
 type_of_file = ""
+folder_or_file = "2"
 counter = 0
 
 # first time entering all params
-file_path, file_name, type_of_file, mid_string, end_string = file_input_fkt(file_path, file_name, type_of_file, counter)
+file_path, file_name, type_of_file, mid_string, end_string = file_input_fkt(file_path, file_name, type_of_file, counter,
+                                                                            folder_or_file)
 txt, txt_output = txt_or_dat_fkt()
-starting_region, last_file_nr, spectra_nr, spectra_name, output = regions_fkt()
+starting_region, last_file_nr, spectra_nr, output = regions_fkt()
 skip_row_nr, column_nr = spec_params()
 
 
 # first time merging & saving the files
 if counter == 0:
-    df = spectra_merger(file_path, file_name, mid_string, end_string, txt, spectra_nr, skip_row_nr, column_nr, last_file_nr,
-                        starting_region)
+    df = spectra_merger(file_path, file_name, mid_string, end_string, txt, spectra_nr, skip_row_nr, column_nr,
+                        last_file_nr, starting_region)
     file_output(file_path, file_name, output, df)
 
 
 # loop if one wants to do it for multiple files in same/diff folder
 counter = 1
-continue_merging = input("do you want to merge other spectra as well? \n then please enter 'yes/y': \n")
+continue_merging = input("do you want to merge other spectra as well? \nThen please enter 'yes/y': \n")
 
 while continue_merging.lower() == "yes" or continue_merging.lower() == "y":
-    file_path, file_name, type_of_file, mid_string, end_string = file_input_fkt(file_path, file_name, type_of_file,
-                                                                                counter)
+    folder_or_file = input(
+        "Do you want to enter a new file name (0), folder name (1), both (2) or change the element parameters (naming, "
+        "start & end file numbers) (3)? \nPlease enter the corresponding number):\n")
+    check = False
+    while not check:
+        try:
+            int(folder_or_file)
+            if int(folder_or_file) > 4:
+                print("there was an error: the input was not between [0-3]")
+                folder_or_file = input("Please enter 0, 1, 2 or 3")
+            else:
+                check = True
+        except:
+            print("There was an error with the input:", folder_or_file)
+            folder_or_file = input("Please enter 0, 1, 2 or 3 ")
+
+    if int(folder_or_file) < 3:
+        file_path, file_name, type_of_file, mid_string, end_string = file_input_fkt(file_path, file_name, type_of_file,
+                                                                                    counter, folder_or_file)
+    if int(folder_or_file) == 3:
+        starting_region, last_file_nr, spectra_nr, output = regions_fkt()
     df = spectra_merger(file_path, file_name, mid_string, end_string, txt, spectra_nr, skip_row_nr, column_nr,
                         last_file_nr, starting_region)
     file_output(file_path, file_name, output, df)
 
-    continue_merging = input("do you want to merge other spectra as well? \n Then please enter 'yes/y' or type 'no/n'")
+    continue_merging = input("do you want to merge other spectra as well?\n Then please enter 'yes/y' or type 'no/n'\n")
