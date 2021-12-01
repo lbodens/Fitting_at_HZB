@@ -45,8 +45,7 @@ if pre_param_check.lower() == "yes" or pre_param_check.lower() == "y":
                              number_of_peaks)
 
 """--------------------------------------actual fitting fkt------------------------------------------------"""
-nfev = Inputs[
-    "fit_iterations"]  # int(input("How many max iterations do you want to use? Please insert a number here:"))
+nfev = Inputs["fit_iterations"]
 out, out_params, y_d = fitting_function_main_fkt(d, p4fit, x, mod_d, number_of_spectra, number_of_peaks, nfev)
 
 """-------------plotting the fitted spectra------------------------------"""
@@ -54,6 +53,13 @@ out, out_params, y_d = fitting_function_main_fkt(d, p4fit, x, mod_d, number_of_s
 fit_loop = False
 while not fit_loop:
     plotting_subplots_main_fkt(x, out_params, mod_d, y_d, peak_func, number_of_spectra, number_of_peaks)
+    replot_loop = False
+    while not replot_loop:
+        replot_loop_check = input("Do you want to look at other spectra/in another way? Please enter 'yes/y' or 'no/n'")
+        if replot_loop_check.lower() == "yes" or replot_loop_check.lower() == "y":
+            plotting_subplots_main_fkt(x, out_params, mod_d, y_d, peak_func, number_of_spectra, number_of_peaks)
+        if replot_loop_check.lower() == "no" or replot_loop_check.lower() == "n":
+            replot_loop = True
     fit_quality_test = input("Is the fit good enough? \nIf yes please enter 'yes'/'y'. if Not enter 'no'/'n':\n")
     if fit_quality_test.lower() == "yes" or fit_quality_test.lower() == "y":
         fit_loop = True
