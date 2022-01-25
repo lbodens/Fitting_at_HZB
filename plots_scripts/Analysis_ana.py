@@ -21,10 +21,10 @@ def get_params_fkt(Inputs, element_number):
     pars_area = param_area_sorting_fkt(pars_cl, Inputs, element_number)
     pars_center = param_center_sorting_fkt(pars_cl, Inputs, element_number)
 
-    df_a_0, df_a_1 = oxid_state_area_sort_fkt(pars_area, Inputs, element_number)
-    df_c_0, df_c_1 = oxid_state_center_sort_fkt(pars_center, Inputs, element_number)
+    df_a = oxid_state_area_sort_fkt(pars_area, Inputs, element_number)
+    df_c = oxid_state_center_sort_fkt(pars_center, Inputs, element_number)
 
-    return pars_cl, df_a_0, df_a_1, df_c_0, df_c_1
+    return pars_cl, df_a, df_c
 
 
 def result_param_reader(param_file_type, param_file_name):
@@ -81,6 +81,17 @@ def param_area_sorting_fkt(pars, Inputs, element_number):
     return pars_area_di
 
 
+def get_werte(werte_list, begin, end):
+    return werte_list[begin:end]
+
+
+def sum_list(list):
+    sum=0
+    for i in range(len(list)):
+        sum += list[i]
+    return sum
+
+
 def oxid_state_area_sort_fkt(pars_df, Inputs, element_number):
     """
     This function adds all the peaks per oxidation state and spin-orbit-splitting into a df each (and the sum of all)
@@ -91,52 +102,56 @@ def oxid_state_area_sort_fkt(pars_df, Inputs, element_number):
     number_of_spectra = Inputs["number_of_spectra"]
     number_of_peaks = Inputs["el{}_number_of_peaks".format(element_number)]
     oxid_core_lvl_list = Inputs["el{}_oxid_and_corelvl_sorting".format(element_number)]
+    list_of_peaks_per_el = Inputs["el{}_number_of_peaks_per_el".format(element_number)]
+    nr_of_oxid_states = Inputs["el{}_number_of_total_oxid_state".format(element_number)]
+    nr_of_elements = len(list_of_peaks_per_el)
+    half_list_len = int(nr_of_elements/2)
+    nr_peaks_1_half = sum(list_of_peaks_per_el[0:half_list_len])
+    nr_peaks_2_half = sum(list_of_peaks_per_el[half_list_len: len(list_of_peaks_per_el)])
 
-    area = {}
-    # creation of df for the oxid sates o_x within the core level _y [0: main peak e.g (2p3/2), 1: 2nd peak e.g. 2p1/2)]
-    df_o_0_0 = {}
-    df_o_1_0 = {}
-    df_o_2_0 = {}
-    df_o_3_0 = {}
-    df_o_4_0 = {}
-    df_o_tot_0 = {}
-    df_o_0_1 = {}
-    df_o_1_1 = {}
-    df_o_2_1 = {}
-    df_o_3_1 = {}
-    df_o_4_1 = {}
-    df_o_tot_1 = {}
+    # creation of df where all sum's of the spin-orbit splitting, elements/oxid states (who belong togther) and each
+    # oxid sates separately area included with: [0:sum of tot, 1: sum(el1), 2: el1[i], 3: sum(el2) el2[i], ...]
+    df_o = {}
+
+    for i in range(nr_of_oxid_states * 2 + nr_of_elements + 2):
+        df_o[i] = {}
 
     for i in range(int(number_of_spectra)):
         spectra_i = "spectra_" + str(i)
+        # creation of list for the input for the df,
+        df_list = []
+        area = [0] * (nr_of_oxid_states * 2)
 
-        # setting the area to 0 at the beginning for each spectra
-        for o in range(10):  # IF you are changing the number of oxid states to greater than 2x3, then update here as well!
-            area[o] = 0
-
+        # add areas which belong together together (according to oxid_cre_lvl_list)
         for name in pars_df[spectra_i]:
             for idx in range(number_of_peaks):
                 if f'p{i}_{idx}_' in name:
                     area[oxid_core_lvl_list[idx]] = area[oxid_core_lvl_list[idx]] + pars_df[spectra_i][name]
 
-        df_o_0_0[spectra_i] = area[0]
-        df_o_1_0[spectra_i] = area[1]
-        df_o_2_0[spectra_i] = area[2]
-        df_o_3_0[spectra_i] = area[3]
-        df_o_4_0[spectra_i] = area[4]
-        df_o_tot_0[spectra_i] = area[0] + area[1] + area[2] + area[3] + area[4]
+        # "insert" the sums at the right places in new df (first (e.g. 2p3/2) half)
+        begin_idx = 0
+        df_list.append(sum_list(area[0:nr_peaks_1_half]))
+        for j in range(half_list_len):
+            value = get_werte(area, begin_idx, begin_idx + list_of_peaks_per_el[j])
+            sum_of_list = sum_list(value)
+            df_list.append(sum_of_list)
+            df_list.extend(value)
+            begin_idx += list_of_peaks_per_el[j]
 
-        df_o_0_1[spectra_i] = area[5]
-        df_o_1_1[spectra_i] = area[6]
-        df_o_2_1[spectra_i] = area[7]
-        df_o_3_1[spectra_i] = area[8]
-        df_o_4_1[spectra_i] = area[9]
-        df_o_tot_1[spectra_i] = area[5] + area[6] + area[7] + area[8] + area[9]
+        # 2nd half (e.g. 2p1/2)
+        df_list.append(sum_list(area[nr_peaks_1_half:nr_peaks_2_half]))
+        for j in range(half_list_len):
+            value = get_werte(area, begin_idx, begin_idx + list_of_peaks_per_el[j])
+            sum_of_list = sum_list(value)
+            df_list.append(sum_of_list)
+            df_list.extend(value)
+            begin_idx += list_of_peaks_per_el[j]
 
-    df_container_0 = df_o_tot_0, df_o_0_0, df_o_1_0, df_o_2_0, df_o_3_0, df_o_4_0
-    df_container_1 = df_o_tot_1, df_o_0_1, df_o_1_1, df_o_2_1, df_o_3_1, df_o_4_1
+        # putting all into big df with all spectra in one
+        for o in range(nr_of_oxid_states * 2 + nr_of_elements + 2):
+            df_o[o][spectra_i] = df_list[o]
 
-    return df_container_0, df_container_1
+    return df_o
 
 
 def param_center_sorting_fkt(pars, Inputs, element_number):
@@ -165,46 +180,27 @@ def oxid_state_center_sort_fkt(pars_df, Inputs, element_number):
     number_of_spectra = Inputs["number_of_spectra"]
     number_of_peaks = Inputs["el{}_number_of_peaks".format(element_number)]
     oxid_core_lvl_list = Inputs["el{}_oxid_and_corelvl_sorting".format(element_number)]
-    df_o_0_0 = {}
-    df_o_1_0 = {}
-    df_o_2_0 = {}
-    df_o_3_0 = {}
-    df_o_4_0 = {}
+    nr_of_oxid_states = Inputs["el{}_number_of_total_oxid_state".format(element_number)]
 
-    df_o_0_1 = {}
-    df_o_1_1 = {}
-    df_o_2_1 = {}
-    df_o_3_1 = {}
-    df_o_4_1 = {}
+    df_c = {}
+    for i in range(nr_of_oxid_states):
+        df_c[i] = {}
 
-
-    center = {}
     for i in range(int(number_of_spectra)):
         spectra_i = "spectra_" + str(i)
 
         # setting the area to 0 at the beginning for each spectra
-        for o in range(10):  # IF you are changing the number of oxid states to greater than 2x3, then update here as well!
-            center[o] = 0
+        center = [0] * (nr_of_oxid_states * 2)
 
         for name in pars_df[spectra_i]:
             for idx in range(number_of_peaks):
-                if f'p{i}_{idx}_' in name and center[oxid_core_lvl_list[idx]] == 0 :
+                if f'p{i}_{idx}_' in name and center[oxid_core_lvl_list[idx]] == 0:
                     center[oxid_core_lvl_list[idx]] = center[oxid_core_lvl_list[idx]] + pars_df[spectra_i][name]
 
-        df_o_0_0[spectra_i] = center[0]
-        df_o_1_0[spectra_i] = center[1]
-        df_o_2_0[spectra_i] = center[2]
-        df_o_3_0[spectra_i] = center[3]
-        df_o_4_0[spectra_i] = center[4]
+        for o in range(nr_of_oxid_states):
+            df_c[o][spectra_i] = center[o]
 
-        df_o_0_1[spectra_i] = center[5]
-        df_o_1_1[spectra_i] = center[6]
-        df_o_2_1[spectra_i] = center[7]
-        df_o_3_1[spectra_i] = center[8]
-        df_o_4_1[spectra_i] = center[9]
-    df_container = df_o_0_0, df_o_1_0, df_o_2_0, df_o_3_0, df_o_4_0
-    df_container2 = df_o_0_1, df_o_1_1, df_o_2_1, df_o_3_1, df_o_4_1
-    return df_container, df_container2
+    return df_c
 
 
 """------------all fkt´s for Ratio_calc_ana - Area part ---------------------"""
@@ -225,7 +221,7 @@ def ratio_calc_choice():
             "Please choose if you want to calc: \n"
             "- the ratio of different oxid states 'within'(0) a specific element,\n"
             "- the ratio of an elements specific oxid state to other 'samples'(1) same oxid state \n"
-            "- 'between'(2) different elements \n "
+            "- 'between'(2) different elements \n"
             "- a 'gradient' (3) between between two elements (list of IMFP´s needed)\n"
             "- or the 'error' (4) of a gradient between between two elements (list of IMFP´s & error´s needed!!!)\n"
             "please enter either the words or number\n")
@@ -308,9 +304,9 @@ def oxid_ratio_clac_fkt(Inputs, df):
     for i in range(len(area_1)):
         ox_factor.loc[i, 0] = "S" + str(i)
         ox_factor.loc[i, oxid_1] = (Inputs[str(el_chosen) + "_sigma"][oxid_1] * Inputs[str(el_chosen) + "_TF"] *
-                   el_1_IMFP[1][i] * el_sweep[1][i])
+                   el_1_IMFP[1][0] * el_sweep[1][i])
         ox_factor.loc[i, oxid_2] = (Inputs[str(el_chosen) + "_sigma"][oxid_2] * Inputs[str(el_chosen) + "_TF"] *
-                   el_2_IMFP[1][i] * el_sweep[1][i])
+                   el_2_IMFP[1][0] * el_sweep[1][i])
 
     ratio_tot = [0]*len(area_2)
     ratio_perc = [0]*len(area_2)
@@ -370,13 +366,13 @@ def el_ratio_calc_fkt(Inputs, df):
     for i in range(len(area_1)):
         el_1_factor.loc[i, 0] = "S" + str(i)
         el_1_factor.loc[i, 1] = (Inputs[str(el_chosen_1) + "_sigma"][0] * Inputs[str(el_chosen_1) + "_TF"] *
-                   el_1_IMFP[1][i] * el_1_sweep[1][i])
+                   el_1_IMFP[1][0] * el_1_sweep[1][i])
 
     el_2_factor = pd.DataFrame(data=np.zeros((len(area_2), 2)))
     for i in range(len(area_1)):
         el_2_factor.loc[i, 0] = "S" + str(i)
         el_2_factor.loc[i, 1] = (Inputs[str(el_chosen_2) + "_sigma"][0] * Inputs[str(el_chosen_2) + "_TF"] *
-                   el_2_IMFP[1][i] * el_2_sweep[1][i])
+                   el_2_IMFP[1][0] * el_2_sweep[1][i])
 
 
     ratio_tot = [0]*len(area_2)
@@ -417,13 +413,13 @@ def el_gradient_ratio_calc_fkt(Inputs, df):
     for i in range(len(area_1)):
         el_1_factor.loc[i, 0] = "S" + str(i)
         el_1_factor.loc[i, 1] = (Inputs[str(el_chosen_1) + "_sigma"][0] * Inputs[str(el_chosen_1) + "_TF"] *
-                   el_1_IMFP[1][i] * el_1_sweep[1][i])
+                   el_1_IMFP[1][0] * el_1_sweep[1][i])
 
     el_2_factor = pd.DataFrame(data=np.zeros((len(area_2), 2)))
     for i in range(len(area_1)):
         el_2_factor.loc[i, 0] = "S" + str(i)
         el_2_factor.loc[i, 1] = (Inputs[str(el_chosen_2) + "_sigma"][0] * Inputs[str(el_chosen_2) + "_TF"] *
-                   el_2_IMFP[1][i] * el_2_sweep[1][i])
+                   el_2_IMFP[1][0] * el_2_sweep[1][i])
 
     ratio_tot = [0]*len(area_2)
     ratio_perc = [0]*len(area_2)
@@ -435,21 +431,23 @@ def el_gradient_ratio_calc_fkt(Inputs, df):
     for n in range(5000):
         for i in range(len(area_1)):
 
+            # calc of the correct IMFP vaule for each sectra_i
             ratio_lower_limit = 1000  # necessary since floats have to big errors when substracted
             while ratio_perc[i] * 1000 < ratio_lower_limit:
                 ratio_lower_limit -= 25
             ratio_lower_limit = ratio_lower_limit / 1000
 
-            for j in range(len(el_2_IMFP)):
+            for j in range(len(el_1_IMFP)):
                 if el_1_IMFP[0][j] == ratio_lower_limit:
                     el_1_IMFP_j = el_1_IMFP[1][j]
                     el_2_IMFP_j = el_2_IMFP[1][j]
 
 
+            # calc the new ratio with the new IMFP
             el_1_factor.loc[i, 1] = (Inputs[str(el_chosen_1) + "_sigma"][0] * Inputs[str(el_chosen_1) + "_TF"] *
-                                         el_1_IMFP_j[1][i] * el_1_sweep[1][i])
+                                         el_1_IMFP_j * el_1_sweep[1][i])
             el_2_factor.loc[i, 1] = (Inputs[str(el_chosen_2) + "_sigma"][0] * Inputs[str(el_chosen_2) + "_TF"] *
-                                     el_2_IMFP_j[1][i] * el_2_sweep[1][i])
+                                     el_2_IMFP_j * el_2_sweep[1][i])
 
             ratio_tot[i] = float(format(((area_1[i] / el_1_factor.loc[i, 1]) / (area_2[i] / el_2_factor.loc[i, 1]))
                                         , '.2f'))

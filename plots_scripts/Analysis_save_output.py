@@ -9,7 +9,7 @@ from plots_scripts.Analysis_plotting import plot_2D_map, save_2D_map
 """----------------Analysis_data_exporting-------------"""
 
 
-def export_area_fkt(df_a_sum, df_a_1_sum, element_nr, nr_of_spectra, Inputs):
+def export_area_fkt(df_a, element_nr, nr_of_spectra, Inputs):
     """
     This function will save the areas of the different peaks (according to the list of oxid_and_corelcalc sorting and
     the naming list) in a file
@@ -18,39 +18,52 @@ def export_area_fkt(df_a_sum, df_a_1_sum, element_nr, nr_of_spectra, Inputs):
     path = Inputs["result_file_path"] + "areas_" + Inputs["el{}_name".format(element_nr)] + ".txt"
     label_list = Inputs["label_list"]
     list_length = len(label_list)
-    list_mid = int(list_length / 2)
+
+    list_of_peaks_per_el = Inputs["el{}_number_of_peaks_per_el".format(element_nr)]
+    nr_of_elements = len(list_of_peaks_per_el)
+    half_list_len = int(nr_of_elements/2)
+    counter = 0
+
     file = open(path, "a")
 
     file.write("The following areas are corresponding to the label list: " + str(label_list))
     file.write("\n\n")
+    # writing header
     file.write("Spectra")
     file.write("\t")
-    file.write("'tot area of 1st 5'")
+    file.write("tot area of 1st half")
     file.write("\t")
-    for i in range(list_mid):
-        file.write("'{}'".format(label_list[i]))
+    for i in range(half_list_len):
+        file.write("sum of next '{}'".format(list_of_peaks_per_el[i]))
         file.write("\t")
-    file.write("'tot area of last 5'")
+        for j in range(list_of_peaks_per_el[i]):
+            file.write("'{}'".format(label_list[counter + j]))
+            file.write("\t")
+        counter += list_of_peaks_per_el[i]
+    file.write("tot area of last half")
     file.write("\t")
-    for i in range(list_mid, list_length):
-        file.write("'{}'".format(label_list[i]))
+    for i in range(half_list_len, len(list_of_peaks_per_el)):
+        file.write("sum of next '{}'".format(list_of_peaks_per_el[i]))
         file.write("\t")
+        for j in range(list_of_peaks_per_el[i]):
+            file.write("'{}'".format(label_list[counter + j]))
+            file.write("\t")
+        counter += list_of_peaks_per_el[i]
     file.write("\n")
+
+    # writing areas
     for s in range(nr_of_spectra):
         spectra_s = "spectra_" + str(s)
         file.write("S" + str(s))
         file.write("\t")
-        for i in range(list_mid + 1):
-            file.write(str(df_a_sum[i][spectra_s]))
-            file.write("\t")
-        for i in range(list_mid + 1):
-            file.write(str(df_a_1_sum[i][spectra_s]))
+        for i in range(len(df_a)):
+            file.write(str(df_a[i][spectra_s]))
             file.write("\t")
         file.write("\n")
     file.close()
 
 
-def export_center_fkt(df_c_sum_0, df_c_sum_1, element_nr, nr_of_spectra, Inputs):
+def export_center_fkt(df_c, element_nr, nr_of_spectra, Inputs):
     """
     This function will save the areas of the different peaks (according to the list of oxid_and_corelcalc sorting and
     the naming list) in a file
@@ -75,11 +88,8 @@ def export_center_fkt(df_c_sum_0, df_c_sum_1, element_nr, nr_of_spectra, Inputs)
         spectra_s = "spectra_" + str(s)
         file.write("S" + str(s))
         file.write("\t")
-        for i in range(len(df_c_sum_0)):
-            file.write(str(df_c_sum_0[i][spectra_s]))
-            file.write("\t")
-        for i in range(len(df_c_sum_1)):
-            file.write(str(df_c_sum_1[i][spectra_s]))
+        for i in range(len(df_c)):
+            file.write(str(df_c[i][spectra_s]))
             file.write("\t")
         file.write("\n")
     file.close()
@@ -252,80 +262,3 @@ def writing_center_to_file(Inputs, center_shift, el_nr, oxid_1, oxid_2=None):
     file.write("\n")
     file.close()
     return
-
-
-
-"""--------------------result_analysis_ pars (old)-------------------"""
-def matrix_and_plot_creation_and_save(df, message, plot_name ,Inputs):
-    A = matrix_creation(df, Inputs)
-    plot_2D_map(A, plot_name, Inputs)
-    write_to_file(A, message, Inputs)
-    save_2D_map(A, plot_name, Inputs)
-    return
-
-def matrix_creation_and_save(df, message, Inputs):
-    A = matrix_creation(df, Inputs)
-    write_to_file(A, message, Inputs)
-    return
-
-def matrix_creation(df, Inputs):
-    """
-    changes the given df into a matrix style function
-    """
-    nr_of_columns = Inputs["number_of_columns"]
-    nr_of_rows = Inputs["number_of_rows"]
-
-    array_d = []
-    for name, rest in df.items():
-        array_d.append(rest)
-    array = np.array(array_d)
-
-    A = array.reshape(nr_of_columns, nr_of_rows)
-    return A
-
-
-def write_to_file(A, message, Inputs):
-    file = open(Inputs["result_file_path"], "a")
-
-    content = str(A)
-    file.write(message)
-    file.write("\n")
-    file.write("\n")
-    file.write(content)
-    file.write("\n")
-    file.write("\n")
-    file.write("\n")
-    file.close()
-
-
-def save_to_file_main_fkt(Inputs, df_a_1, df_a_2, df_a_tot, df_c_shift_bw_oxid, df_c_shift_el1, df_c_shift_el2):
-    df_ratio_perc_1, df_ratio_abs_1 = df_a_1
-    df_ratio_perc_2, df_ratio_abs_2 = df_a_2
-    df_ratio_perc_tot, df_ratio_abs_tot = df_a_tot
-
-
-    matrix_and_plot_creation_and_save(df_ratio_perc_1, "Percentage ratio of oxid state 1 to 2 of {}:".format(Inputs["el1_name"]),
-                             "perc_oxid_{}:".format(Inputs["el1_name"]), Inputs)
-    matrix_creation_and_save(df_ratio_abs_1, "Absolute ratio of oxid state 1 to 2 of {}:".format(Inputs["el1_name"]),
-                             Inputs)
-    matrix_and_plot_creation_and_save(df_ratio_perc_2, "Percentage ratio of oxid state 1 to 2 of {}:".format(Inputs["el2_name"]),
-                             "perc_oxid_{}:".format(Inputs["el2_name"]),Inputs)
-    matrix_creation_and_save(df_ratio_abs_2, "Absolute ratio of oxid state 1 to 2 of {}:".format(Inputs["el2_name"]),
-                             Inputs)
-    matrix_and_plot_creation_and_save(df_ratio_perc_tot,
-                             "Percentage ratio of {} to {}:".format(Inputs["el1_name"], Inputs["el2_name"]),
-                             "perc_oxid_{}_to_{}:".format(Inputs["el1_name"], Inputs["el2_name"]), Inputs)
-    matrix_creation_and_save(df_ratio_abs_tot,
-                             "Absolute ratio of {} to {}:".format(Inputs["el1_name"], Inputs["el2_name"]), Inputs)
-
-    matrix_creation_and_save(df_c_shift_bw_oxid, "Energy shift of main peak between oxid state 1 & 2", Inputs)
-    matrix_creation_and_save(df_c_shift_el1,
-                             "Energy shift of the main peak over the sample in dependence of the 1st main peaks position of {}:".format(
-                                 Inputs["el1_name"]), Inputs)
-    matrix_creation_and_save(df_c_shift_el2,
-                             "Energy shift of the main peak over the sample in dependence of the 1st main peaks position of {}:".format(
-                                 Inputs["el2_name"]), Inputs)
-    return
-
-
-

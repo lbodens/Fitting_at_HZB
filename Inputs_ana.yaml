@@ -1,49 +1,35 @@
   # should be = number_of_columns * number_of_rows  
-  number_of_spectra: 4                      
-  # nr of columns for final matrix
-  number_of_columns: 4                       
-  # nr of rows for final matrix
-  number_of_rows: 1                         
+  number_of_spectra: 20
+  BE_or_KE: "BE"
 
-  matrix_bool : False           # if you have a big matrix with a gradient set to True
-
-  imp_path: "D:\\Profile\\ogd\\Eigene Dateien\\GitHub\\Fitting_at_HZB\\plots_scripts"
-  import_path_SFB: "D:\\Profile\\ogd\\Eigene Dateien\\GitHub\\Fitting_at_HZB\\plots_scripts.Shirley_fkt_build"
-  import_path_DL: "D:\\Profile\\ogd\\Eigene Dateien\\GitHub\\Fitting_at_HZB\\plots_scripts.Data_loader"
-
-
-  # stupid stuff which has to be in the file but will not be used
-  folder_or_file: "bla"
-  file_path: "bla"
-  file_type: "bla"
-  skip_rows: 0                # Enter number of rows above the spectra data incl the header line ('# Energy Kinetic' or what ever the header is)
-  BE_or_KE: "BE" 
-  number_of_peaks: 0
-
-  color_list: ["g", "b", "darkorange", "lightgreen", "cornflowerblue", "orange"]
-  label_list: ["Oxid 1  $_{3/2}$","---","Oxid 2 $_{singulet}$", "Oxid 1 $_{1/2}$", "---", "---", ]
+  color_list: ["g", "b","purple", "darkorange", "grey", "lightgreen", "cornflowerblue", "pink", "orange","silver"]
+  label_list: ["Oxid 1  $_{3/2}$","Oxid 2 $_{singulet}$","Element 2 Oxid_1$_{3/2}$","Oxid 1 $_{1/2}$", "---", "---", ]
 
 
   # Inputs for the data file (where all the spectra are in)
   element_number: 1
   el1_folder_or_file: "file"        #or "folder"
-  el1_file_path: "d:\\Profile\\ogd\\...\\data"        #if file in same folder as main.py, then the file name is enough
-  el1_folder_path: ""               # write path to the folder with all files inside. (only necessary, if you choose folder instead of file)
-  el1_txt_or_dat: ".dat"            # are you using .txt files or .dat files? Please enter '.txt' or '.dat'(dot in the beginning is important!)
-  el1_skip_rows: 0                  # Enter number of rows above the spectra data incl the header line ('# Energy Kinetic' or what ever the header is)
+  el1_file_path: "d:\\Profile\\...\\data_file"       #if file in same folder as main.py, then the file name is enough
+  #for folder path:
+  el1_folder_path: "d:\\Profile\\...\\folder\\"               # write path to the folder with all files inside. (only necessary, if you choose folder instead of file)
+  el1_file_counting_start: 1          # the number the file count sartrs (normally 0 or 1)
+  el1_column_nr: 2                    # column_nr used, if the folder variance is used. for file it doesn´t matter
+  
+  el1_txt_or_dat: ".txt"            # are you using .txt files or .dat files? Please enter '.txt' or '.dat'(dot in the beginning is important!)
+  el1_skip_rows: 1                  # Enter number of rows above the spectra data incl the header line ('# Energy Kinetic' or what ever the header is)
   el1_BE_or_KE : "BE"
   el1_KE_excertation_E: 1486.7
 
   el1_param_file_type: "yaml"
   el1_param_file_name: "d:\\Profile\\ogd\\...\\params"
   el1_name: "Element/region Name"
-  el1_number_of_peaks: 3
+  el1_number_of_peaks: 10
   el1_peak_type: "Voigt"
-  el1_oxid_and_corelvl_sorting: [0,3,2]        # list of oxid sates sorted after their oxid states and the core lvl according to the label_list: oxid_0_p3/2: 0, oxid_1_p3/2: 1, oxid_2_p3/2: 2, oxid_0_p1/2: 3, oxid_1_p1/2: 4, oxid_1_p1/2: 5
-  el1_number_of_total_oxid_state: 3            # this is fixed!!!! if you want to increase it, you have to update the code as well (Analysis_ana: Oxid_state_area_sort_fkt: add df & increase the i in the area[o]=0 line!s)
-  el1_number_per_oxid_state_0: 2
-  el1_number_per_oxid_state_1: 0
-  el1_number_per_oxid_state_2: 1
+  el1_oxid_and_corelvl_sorting: [0,1,2,1,1,2,6,7,3,4]   # list of oxid sates sorted after their oxid states and the core lvl according to the label_list: oxid_0_p3/2: 0, oxid_1_p3/2: 1, oxid_2_p3/2: 2, oxid_0_p1/2: 3, oxid_1_p1/2: 4, oxid_1_p1/2: 5
+  el1_number_of_total_oxid_state: 8            
+  el1_number_of_peaks_per_el: [3,3,2,0,0,0]         # nr of peaks per element for sorting, while its still seperated for e.g. 3/2 & 1/2 (if 1s leave 2nd halve at 0); len = nr_of_total_oxid *2
+
+
   # cross section
   el1_sigma: 7.34
   el1_trans_fkt: 0.31027
