@@ -1,0 +1,78 @@
+#CorrectedIntensity=MeasuredIntensity*(0.61+0.00021*KE)
+
+  el_list: ["Cu2p", "Ni2p"]
+  skip_rows: 3
+  txt: ".txt"
+  file_name_area: "areas_"                         # using the same name, where the areas are put in. should be this by default
+  file_name_center: "center_"
+
+  result_path: "d:\\Profile\\ogd\\Desktop\\PhD\\Measurements\\Analysis\\190414b_NiCuO_Sample\\XPS\\pyhton_analysis\\bare\\results\\"
+
+  Pb4f_label_list: ["Pb4f $_{7/2}$" , "Pb$^0$$_{7/2}$" ,"Pb$^{Ox}$$_{7/2}$", "Pb$^{satellite}$$_{7/2}$",  "---", "Pb4f $_{5/2}$" , "Pb$^0$$_{5/2}$", "Pb$^{Ox}$$_{5/2}$", "Pb$^{satellite}$$_{5/2}$", "---"]
+  Pb4f_file_path: "d:\\Profile\\ogd\\Desktop\\PhD\\Measurements\\Analysis\\210605_CuNiO_200p_ni_terminated\\XPS\\python_analysis\\pl_cl_at_HZB\\CuNiO+FACsPbI\\CuNiO_200p_Ni_term\\results\\Pb4f\\"
+  Pb4f_sigma: [12.73,12.73,12.73,12.73]     #Tr: 12.66; Sc1(Al): 0.0000002428;  SC1(BE): 0.001061; sc2: 22.74, Sc3: 12.73
+  Pb4f_TF: 0.89329
+  Pb4f_sweep_list : False
+  Pb4f_sweep: 2  
+  Pb4f_IMFP_list : False
+  Pb4f_IMFP: [48.55,48.55,48.55,48.55]       # quas sing: 29.6, new el: 48.7
+  Pb4f_KE: 1349
+
+  N1s_label_list: ["N1s",  "---", "---", "---", "---", "---", "Pb4d $_{3/2}$", "---", "---", "---"]
+  N1s_file_path: "d:\\Profile\\ogd\\Desktop\\PhD\\Measurements\\Analysis\\210605_CuNiO_200p_ni_terminated\\XPS\\python_analysis\\pl_cl_at_HZB\\CuNiO+FACsPbI\\CuNiO_200p_Ni_term\\results\\N1s\\"
+  N1s_sigma: [1.8,1.8,0,0]
+  N1s_TF: 0.838
+  N1s_sweep_list : False
+  N1s_sweep: 3  
+  N1s_IMFP_list : False
+  N1s_IMFP: [41,41,0,0]
+  N1s_KE: 1086.83
+
+  I3d_label_list: ["I3d $_{3/2}$" , "Bg" , "---", "---", "---", "I3d $_{1/2}$", "Bg$_2$",  "---", "---", "---"]
+  I3d_file_path: "d:\\Profile\\ogd\\Desktop\\PhD\\Measurements\\Analysis\\210605_CuNiO_200p_ni_terminated\\XPS\\python_analysis\\pl_cl_at_HZB\\CuNiO+FACsPbI\\CuNiO_200p_Ni_term\\results\\I3d\\"
+  I3d_sigma: [19.87,19.87,0,0]          #TR: 20.64, Sc1(Al): 0.000005448;  SC1(BE): 0.0000461; Sc2&3: 19.87
+  I3d_TF: 0.7923
+  I3d_sweep_list : False
+  I3d_sweep: 1  
+  I3d_IMFP_list : False
+  I3d_IMFP: [34.52,34.52,0,0]           # quas sing: 20.57, new el: 34.59
+  I3d_KE: 868.25
+
+  Cs3d_label_list: ["Cs3d $_{5/2}$" , "Bg" , "---", "---", "---", "Cs3d $_{3/2}$", "---",  "---", "---", "---"]
+  Cs3d_file_path: "d:\\Profile\\ogd\\Desktop\\PhD\\Measurements\\Analysis\\210605_CuNiO_200p_ni_terminated\\XPS\\python_analysis\\pl_cl_at_HZB\\CuNiO+FACsPbI\\CuNiO_200p_Ni_term\\results\\Cs3d\\"
+  Cs3d_sigma: [23.76,23.76,0,0]
+  Cs3d_TF: 0.77016
+  Cs3d_sweep_list : False
+  Cs3d_sweep: 3  
+  Cs3d_IMFP_list : False
+  Cs3d_IMFP: [31.30,31.30,0,0]
+  Cs3d_KE: 762.7
+
+  Cu2p_label_list: ["Cu2p (I) $_{3/2}$", "Cu2p (II) $_{3/2}$ ", "Bg", "---","---", "Cu2p (I) $_{1/2}$", "Cu2p (II) $_{1/2}$", "Bg", "---", "---"]
+  Cu2p_file_path: "d:\\Profile\\ogd\\Desktop\\PhD\\Measurements\\Analysis\\190414b_NiCuO_Sample\\XPS\\pyhton_analysis\\bare\\results\\Cu2p\\"
+  Cu2p_sigma: [16.73,16.73,16.73,16.73, 0, 0]
+  Cu2p_TF: 0.7242
+  Cu2p_sweep_list : False
+  Cu2p_sweep_list_path: "d:\\Profile\\ogd\\Desktop\\PhD\\Measurements\\Analysis\\190414b_NiCuO_Sample\\XPS\\pyhton_analysis\\bare\\results\\Cu_list_of_sweeps.txt"
+  Cu2p_sweep: 30  
+  Cu2p_IMFP_list: True
+  Cu2p_IMFP_list_path: "d:\\Profile\\ogd\\Desktop\\PhD\\Measurements\\Analysis\\190414b_NiCuO_Sample\\XPS\\pyhton_analysis\\bare\\results\\Cu-Ni_IMFP_ratio_file.txt"
+  Cu2p_IMFP: [1198,1198,1198,0, 0, 0]
+  Cu2p_KE: 762.7
+
+
+  Ni2p_label_list: ["Ni2p (II) $_{3/2}$", "Ni2p (III) $_{3/2}$ ", "---", "---","---", "Ni2p (II) $_{1/2}$", "Ni2p (III) $_{1/2}$", "---", "---", "---"]
+  Ni2p_file_path: "d:\\Profile\\ogd\\Desktop\\PhD\\Measurements\\Analysis\\190414b_NiCuO_Sample\\XPS\\pyhton_analysis\\bare\\results\\Ni2p\\"
+  Ni2p_sigma: [14.61,14.61,14.61,0, 0, 0]
+  Ni2p_TF: 0.77016
+  Ni2p_sweep_list : False
+  Ni2p_sweep_list_path: "d:\\Profile\\ogd\\Desktop\\PhD\\Measurements\\Analysis\\190414b_NiCuO_Sample\\XPS\\pyhton_analysis\\bare\\results\\Ni_list_of_sweeps.txt"
+  Ni2p_sweep: 30  
+  Ni2p_IMFP_list: True
+  Ni2p_IMFP_list_path: "d:\\Profile\\ogd\\Desktop\\PhD\\Measurements\\Analysis\\190414b_NiCuO_Sample\\XPS\\pyhton_analysis\\bare\\results\\Ni-Cu_IMFP_ratio_file.txt"
+  Ni2p_IMFP: [1318,1318,1318,0, 0, 0]
+  Ni2p_KE: 762.7
+
+
+
+

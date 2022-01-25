@@ -44,7 +44,8 @@ def data_load_fkt(Inputs, area_or_center):
             df_data[el_list[i]] = pd.read_csv(path_list[i], skiprows=skip_rows, delim_whitespace=True, header=None)
     if area_or_center == "center":
         for i in range(nr_of_elements):
-            df_data[el_list[i]] = pd.read_csv(path_list[i], skiprows=skip_rows + 1, delim_whitespace=True, header=None)
+            skip_rows_center = skip_rows + 1
+            df_data[el_list[i]] = pd.read_csv(path_list[i], skiprows=skip_rows_center, delim_whitespace=True, header=None)
     return df_data
 
 
@@ -133,7 +134,7 @@ while not area_or_center:
     area_or_center_choice = input("do you want to work with the 'area' (0) or 'center' (1) of the peaks?\n")
 
     if area_or_center_choice.lower() == "area" or area_or_center_choice == "0":
-        area_calc_main_fkt()
+        area_calc_main_fkt(Inputs)
 
         cont = input("Do you want to 'continue'(0) with the center calcs or do you want to 'stop'(1)?\n")
         if cont == "continue" or cont == "0":

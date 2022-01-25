@@ -3,6 +3,8 @@
   folder_or_file: "file"          #or "folder"
   file_path: "D:\\Profile\\ogd\\Eigene Dateien\\GitHub\\Fitting_at_HZB\\Cu2p_data"        #if file in same folder as main.py, then the file name is enough
   folder_path: ""                 # write path to the folder with all files inside. (only necessary, if you choose folder instead of file)
+  file_counting_start: 1          # the number the file count sartrs (normally 0 or 1)
+  column_nr: 2                    # column_nr used, if the folder variance is used. for file it doesn´t matter
   txt_or_dat: ".dat"              # are you using .txt files or .dat files? Please enter '.txt' or '.dat'(dot in the beginning is important!)
   skip_row_nr: 0                  # Enter number of rows above the spectra data incl the header line ('# Energy Kinetic' or what ever the header is)
   BE_or_KE: "BE"                  #"Is the following energy scale in binding (BE) or kinetic (KE)? please enter 'BE' for binding or 'KE' for kinetic\n")

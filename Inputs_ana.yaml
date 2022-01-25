@@ -42,3 +42,44 @@
   step_size: 0.03
 
 
+
+"""-----------------------------------------------------------------------------------------------------------------------------------------"""
+###############################################################################################################################################
+#                                                                                                                                             #
+#The following part is only necessary fore really deep analysis and ratio calculations with different elements (examples given)               #
+#                                                                                                                                             #
+###############################################################################################################################################
+"""-----------------------------------------------------------------------------------------------------------------------------------------"""
+
+  el_list: ["Pb4f", "I3d"]
+  skip_rows: 3
+  txt: ".txt"
+  file_name_area: "areas_"                         # using the same name, where the areas are put in. should be this by default
+  file_name_center: "center_"
+
+  result_path: "d:\\Profile\\ogd...\\results\\"
+
+  Pb4f_label_list: ["Pb4f $_{7/2}$" , "Pb$^0$$_{7/2}$" ,"Pb$^{Ox}$$_{7/2}$", "Pb$^{satellite}$$_{7/2}$",  "---", "Pb4f $_{5/2}$" , "Pb$^0$$_{5/2}$", "Pb$^{Ox}$$_{5/2}$", "Pb$^{satellite}$$_{5/2}$", "---"]
+  Pb4f_file_path: "d:\\Profile\\...\\results\\Pb4f\\"
+  Pb4f_sigma: [12.73,12.73,12.73,12.73,12.73,12.73]     # insert sigma for each peak/element from the area file (if diff oxidstates/elements have different ones). The total length of this has to be the the same as coluns in the list (sums aswell)
+  Pb4f_TF: 0.89329                    # CorrectedIntensity=MeasuredIntensity*(0.61+0.00021*KE)
+  Pb4f_sweep_list : False             # if you ahve different nr of sweeps in your measurements and needs to divide by its number: insert true here
+  Pb4f_sweep_list_path: "d:\\Profile\\...\\list_of_sweeps.txt"
+  Pb4f_sweep: 2  
+  Pb4f_IMFP_list : False              # if you have a list of IMFP´s: set to true
+  Pb4f_IMFP_list_path: "d:\\Profile\\...\\IMFP_ratio_file.txt"
+  Pb4f_IMFP: [48.55,48.55,48.55,48.55,48.55,48.55]       # see sigma list
+  Pb4f_KE: 1349
+
+  I3d_label_list: ["I3d $_{3/2}$" , "Bg" , "---", "---", "---", "I3d $_{1/2}$", "Bg$_2$",  "---", "---", "---"]
+  I3d_file_path: "d:\\Profile\\...\\results\\I3d\\"
+  I3d_sigma: [19.87,19.87,0,0,0,0]          
+  I3d_TF: 0.7923
+  I3d_sweep_list : False
+  I3d_sweep: 1  
+  I3d_IMFP_list : False
+  I3d_IMFP: [34.52,34.52,0,0,0,0]           
+  I3d_KE: 868.25
+
+
+  Pb4f-I3d_IMFP: [48.55, 34.52]
