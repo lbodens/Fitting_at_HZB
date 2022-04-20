@@ -52,6 +52,8 @@ def param_cleaning_fkt(pars):
         pos_val_end = pars[name].index(", bound")
         if " (fixed)" in pars[name]:
             pos_val_end = pars[name].index(" (fixed)")
+        if " +/- " in pars[name]:
+            pos_val_end = pars[name].index(" +/- ")
 
         pars_value = ""
         for k in range(pos_val_start+1, pos_val_end):
@@ -113,7 +115,7 @@ def oxid_state_area_sort_fkt(pars_df, Inputs, element_number):
     # oxid sates separately area included with: [0:sum of tot, 1: sum(el1), 2: el1[i], 3: sum(el2) el2[i], ...]
     df_o = {}
 
-    for i in range(nr_of_oxid_states * 2 + nr_of_elements + 2):
+    for i in range(nr_of_oxid_states *2 + nr_of_elements + 2):
         df_o[i] = {}
 
     for i in range(int(number_of_spectra)):
@@ -148,7 +150,7 @@ def oxid_state_area_sort_fkt(pars_df, Inputs, element_number):
             begin_idx += list_of_peaks_per_el[j]
 
         # putting all into big df with all spectra in one
-        for o in range(nr_of_oxid_states * 2 + nr_of_elements + 2):
+        for o in range(nr_of_oxid_states *2 + nr_of_elements + 2):
             df_o[o][spectra_i] = df_list[o]
 
     return df_o
