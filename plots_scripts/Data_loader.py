@@ -66,6 +66,7 @@ def dat_merger_single_file_fkt(file_path, txt, Inputs, skip_rows, number_of_spec
             d[dat_i]["E"] = df.iloc[:, 0]
         if BE_or_KE == "KE":
             d[dat_i]["E"] = df.iloc[:, 0] - exertation_energy
+        #print(i)
         d[dat_i]["Spectra"] = df.iloc[:, i + 1]
 
     d = energy_test_fkt(d, number_of_spectra)

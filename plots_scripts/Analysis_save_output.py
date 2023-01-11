@@ -151,6 +151,7 @@ def writing_ratio_to_file(Inputs, ratio_tot, ratio_perc, el_nr_1, el_nr_2=None, 
     el_list = Inputs["el_list"]
     el_path = el_list[el_nr_1] + "_file_path"
     path = Inputs[el_path] + "Ratio_results_" + str(el_list[el_nr_1]) + ".txt"
+    label_list = Inputs[el_list[el_nr_1] + "_label_list"]
 
     file = open(path, "a")
     if el_nr_2 is not None:
@@ -160,7 +161,7 @@ def writing_ratio_to_file(Inputs, ratio_tot, ratio_perc, el_nr_1, el_nr_2=None, 
                     + str(el_list[el_nr_2]) + ": " + str(Inputs[el_list[el_nr_2]+"_sigma"][0]))
     if el_nr_2 is None:
         file.write("The ratios of " + str(el_list[el_nr_1]) + "´s oxid_state " + str(oxid_1) + " and " + str(oxid_2) +
-                   " according to the area_" + str(el_list[el_nr_1]) + " file")
+                   " according to the area_" + str(el_list[el_nr_1]) + " file (" + str(label_list)+")")
     file.write("\n")
     file.write("Spectra")
     file.write("\t")

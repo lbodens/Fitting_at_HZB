@@ -246,7 +246,7 @@ def ratio_calc_choice():
             ratio_choice_bool = False
 
 
-def if_sweep_list_fkt(Inputs,area, el_chosen):
+def if_sweep_list_fkt(Inputs, area, el_chosen):
     if Inputs[str(el_chosen) + "_sweep_list"] is True:
         el_sweep = pd.read_csv(Inputs[str(el_chosen) + "_sweep_list_path"], skiprows=Inputs["skip_rows"],
                                  delim_whitespace=True, header=None)
@@ -321,7 +321,7 @@ def oxid_ratio_clac_fkt(Inputs, df):
 
 def el_within_calc_fkt(Inputs, df):
     """
-    fkt which calculates the ratio between samples itsef, of a desired oxid sates of the chosen element
+    fkt which calculates the ratio between samples itself, of a desired oxid sates of the chosen element
     """
     el_list = Inputs["el_list"]
     el_to_calc = int(input("please enter the nr of el according to " + str(el_list) + " in the type of [0,1,2...]"))
@@ -332,11 +332,13 @@ def el_within_calc_fkt(Inputs, df):
 
     el_chosen = el_list[el_to_calc]
     area = df[el_chosen][int(oxid)+1]
+    # check if there is a list of sweeps, if yes load it, if not create a df with the static sweep written into it
+    el_sweep = if_sweep_list_fkt(Inputs, area, el_chosen)
     df_len = len(df[el_chosen])
     df_mat = {}
     for i in range(df_len):
         for j in range(df_len):
-            df_mat[j + (df_len * i)] = area[i] / area[j]
+            df_mat[j + (df_len * i)] = (area[i]/el_sweep[1][i]) / (area[j]/el_sweep[1][j])
     return df_mat, el_to_calc, oxid
 
 

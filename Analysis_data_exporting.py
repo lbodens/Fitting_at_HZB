@@ -57,8 +57,8 @@ def export_fitted_eval_data_main_fkt(Inputs):
     try:
         file_a = open(my_file_area)  # .is_file():
         print(
-            "The save file exists already and will not be created/written. If you want to have it updated, delete it first"
-            " and restart the program\n")
+            "The save file exists already and will not be created/written. If you want to have it updated, delete it "
+            "first and restart the program\n")
         file_a.close()
     except:
         print("And will be saved in:" + Inputs["result_file_path"] + "areas_" + Inputs["el1_name"] + ".txt \n")
