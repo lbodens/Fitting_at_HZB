@@ -17,10 +17,11 @@ Output:
 import yaml
 import pandas as pd
 import numpy as np
-from plots_scripts.Analysis_ana import ratio_calc_choice, oxid_ratio_clac_fkt, el_ratio_calc_fkt
+from plots_scripts.Analysis_ana import ratio_calc_choice, oxid_ratio_clac_fkt, el_ratio_calc_fkt, el_ratio_3_el_calc_fkt
 from plots_scripts.Analysis_ana import el_gradient_ratio_calc_fkt, el_within_calc_fkt, el_gradient_error_calc_fkt
 from plots_scripts.Analysis_ana import center_shift_fkt_choice, center_shift_self_fkt, center_shift_bewteen_fkt
-from plots_scripts.Analysis_save_output import writing_ratio_to_file, matrix_creation,mat_writing_to_file, writing_center_to_file
+from plots_scripts.Analysis_save_output import writing_ratio_to_file, matrix_creation, mat_writing_to_file, \
+    writing_center_to_file, writing_ratio_3_el_to_file
 
 
 def data_load_fkt(Inputs, area_or_center):
@@ -78,10 +79,14 @@ def area_calc_main_fkt(Inputs):
             writing_ratio_to_file(Inputs, ratio_tot, ratio_perc, el_nr_1, el_nr_2, None, None)
 
         if ratio_choice == 3:
+            ratio_tot, ratio_perc, el_nr_1, el_nr_2, el_nr_3 = el_ratio_3_el_calc_fkt(Inputs, df_area)
+            writing_ratio_3_el_to_file(Inputs, ratio_tot, ratio_perc, el_nr_1, el_nr_2, el_nr_3, None, None)
+
+        if ratio_choice == 4:
             ratio_tot, ratio_perc, el_nr_1, el_nr_2,el_1_factor, el_2_factor = el_gradient_ratio_calc_fkt(Inputs, df_area)
             writing_ratio_to_file(Inputs, ratio_tot, ratio_perc, el_nr_1, el_nr_2, None, None)
 
-        if ratio_choice == 4:
+        if ratio_choice == 5:
             ratio_tot, ratio_perc, el_nr_1, el_nr_2,el_1_factor, el_2_factor = el_gradient_ratio_calc_fkt(Inputs, df_area)
             ratio_error_pos_diff, ratio_error_neg_diff = el_gradient_error_calc_fkt(Inputs, df_area, el_nr_1, el_nr_2, ratio_perc, el_1_factor, el_2_factor)
             writing_ratio_to_file(Inputs, ratio_error_pos_diff, ratio_error_neg_diff, el_nr_1, el_nr_2, None, None)

@@ -95,7 +95,7 @@ def export_center_fkt(df_c, element_nr, nr_of_spectra, Inputs):
     file.close()
 
 
-def export_eval_data_fkt(Inputs, element_number, spectra_to_plot, x, mod_w_sBG_peaks_eval, shirley_BG_d,
+def export_eval_data_fkt(Inputs, element_number, spectra_to_plot, x, y_d, mod_w_sBG_peaks_eval, shirley_BG_d,
                          mod_d_eval):
     """
     this fkt exports the evaluated peaks into a file with:
@@ -122,6 +122,10 @@ def export_eval_data_fkt(Inputs, element_number, spectra_to_plot, x, mod_w_sBG_p
     file.write("shirley")
     file.write(",\t")
     file.write("fit")
+    file.write(",\t")
+    file.write("data")
+    file.write(",\t")
+    file.write("residuum")
     file.write("\n")
 
     for j in range(len_col):
@@ -134,6 +138,10 @@ def export_eval_data_fkt(Inputs, element_number, spectra_to_plot, x, mod_w_sBG_p
         file.write(str(shirley_BG_d[spectra_i][j]))
         file.write("\t")
         file.write(str(mod_d_eval[spectra_to_plot][j]))
+        file.write("\t")
+        file.write(str(y_d[spectra_to_plot][j]))
+        file.write("\t")
+        file.write(str(mod_d_eval[spectra_to_plot][j]-y_d[spectra_to_plot][j]))
         file.write("\t")
         file.write("\n")
 
@@ -159,6 +167,46 @@ def writing_ratio_to_file(Inputs, ratio_tot, ratio_perc, el_nr_1, el_nr_2=None, 
                    + str(el_list[el_nr_2]) + " are now saved. With the tot-ratio (el1/el2) and %-ratio (el1/(el1+el2))."
                     "\n the sigma were: " + str(el_list[el_nr_1])+": "+str(Inputs[el_list[el_nr_1]+"_sigma"][0])+" & "
                     + str(el_list[el_nr_2]) + ": " + str(Inputs[el_list[el_nr_2]+"_sigma"][0]))
+    if el_nr_2 is None:
+        file.write("The ratios of " + str(el_list[el_nr_1]) + "´s oxid_state " + str(oxid_1) + " and " + str(oxid_2) +
+                   " according to the area_" + str(el_list[el_nr_1]) + " file (" + str(label_list)+")")
+    file.write("\n")
+    file.write("Spectra")
+    file.write("\t")
+    file.write("Ratio_perc")
+    file.write("\t")
+    file.write("Ratio_tot")
+    file.write("\n")
+    for s in range(len(ratio_tot)):
+        file.write("S" + str(s))
+        file.write("\t")
+        file.write(str(float(format(ratio_perc[s], '.2f'))))
+        file.write("\t")
+        file.write(str(float(format(ratio_tot[s], '.2f'))))
+        file.write("\n")
+    file.write("\n")
+    file.close()
+    return
+
+
+def writing_ratio_3_el_to_file(Inputs, ratio_tot, ratio_perc, el_nr_1, el_nr_2=None, el_nr_3=None, oxid_1=None, oxid_2=None):
+    """
+    This function will save the total and percentage ratio of the chosen type into a file with the name/folder of the
+    1st selected element
+    """
+    el_list = Inputs["el_list"]
+    el_path = el_list[el_nr_1] + "_file_path"
+    path = Inputs[el_path] + "Ratio_results_" + str(el_list[el_nr_1]) + ".txt"
+    label_list = Inputs[el_list[el_nr_1] + "_label_list"]
+
+    file = open(path, "a")
+    if el_nr_2 is not None:
+        file.write("The ratios of the total area of the main/dominant spin orbit of " + str(el_list[el_nr_1]) + ", "
+                   + str(el_list[el_nr_2]) + " and " + str(el_list[el_nr_3]) + " are now saved. With the tot-ratio "
+                   "(el1/(el2+el3)) and %-ratio (el1/(el1+el2+el3)).\nThe sigma were: "
+                   + str(el_list[el_nr_1])+": " + str(Inputs[el_list[el_nr_1]+"_sigma"][0])+" & "
+                   + str(el_list[el_nr_2]) + ": " + str(Inputs[el_list[el_nr_2] + "_sigma"][0]) + " & "
+                   + str(el_list[el_nr_3]) + ": " + str(Inputs[el_list[el_nr_3]+"_sigma"][0]))
     if el_nr_2 is None:
         file.write("The ratios of " + str(el_list[el_nr_1]) + "´s oxid_state " + str(oxid_1) + " and " + str(oxid_2) +
                    " according to the area_" + str(el_list[el_nr_1]) + " file (" + str(label_list)+")")

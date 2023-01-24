@@ -24,7 +24,7 @@ def export_eval_peaks_fkt(Inputs, element_nr, nr_of_spectra, nr_of_peaks, pars_c
     spectra_to_plot = int(input("please enter the spectra nr (0 to n-1) you want to extract"))
     printout_loop = False
     while printout_loop is False:
-        export_eval_data_fkt(Inputs, element_nr, spectra_to_plot, x, mod_w_sBG_peaks_eval, shirley_BG_d,
+        export_eval_data_fkt(Inputs, element_nr, spectra_to_plot, x, y_d, mod_w_sBG_peaks_eval, shirley_BG_d,
                              mod_d_eval)
         export_plot_fkt(x, y_d, mod_d_eval, shirley_BG_d, mod_w_sBG_peaks_eval, Inputs, element_nr, spectra_to_plot)
 

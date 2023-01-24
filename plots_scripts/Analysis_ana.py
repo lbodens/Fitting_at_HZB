@@ -215,7 +215,7 @@ def ratio_calc_choice():
     - the ratio of an elements specific oxid state to other 'samples'(1) same oxid state
     - 'between'(2) different elements
     - a 'gradient' (3) between between two elements (list of IMFP´s needed)
-    - or the 'error' (4) of a gradient between between two elements (list of IMFP´s & error´s needed!!!)
+    - or the 'error' (4) of a gradient between two elements (list of IMFP´s & error´s needed!!!)
     """
     ratio_choice_bool = False
     while not ratio_choice_bool:
@@ -223,9 +223,10 @@ def ratio_calc_choice():
             "Please choose if you want to calc: \n"
             "- the ratio of different oxid states 'within'(0) a specific element,\n"
             "- the ratio of an elements specific oxid state to other 'samples'(1) same oxid state \n"
-            "- 'between'(2) different elements \n"
-            "- a 'gradient' (3) between between two elements (list of IMFP´s needed)\n"
-            "- or the 'error' (4) of a gradient between between two elements (list of IMFP´s & error´s needed!!!)\n"
+            "- 'between'(2) different elements (el1/el2) \n"
+            "- 'between3'(3) different elements (el1/(el2+el3)) \n"
+            "- a 'gradient' (4) between between two elements (list of IMFP´s needed)\n"
+            "- or the 'error' (5) of a gradient between between two elements (list of IMFP´s & error´s needed!!!)\n"
             "please enter either the words or number\n")
         if (ratio_choice.lower() == "within") or ratio_choice == "0":
             ratio_choice = 0
@@ -236,11 +237,14 @@ def ratio_calc_choice():
         elif (ratio_choice.lower() == "between") or ratio_choice == "2":
             ratio_choice = 2
             return ratio_choice
-        elif (ratio_choice.lower() == "gradient") or ratio_choice == "3":
+        elif (ratio_choice.lower() == "between3") or ratio_choice == "3":
             ratio_choice = 3
             return ratio_choice
-        elif (ratio_choice.lower() == "error") or ratio_choice == "4":
+        elif (ratio_choice.lower() == "gradient") or ratio_choice == "4":
             ratio_choice = 4
+            return ratio_choice
+        elif (ratio_choice.lower() == "error") or ratio_choice == "5":
+            ratio_choice = 5
             return ratio_choice
         else:
             ratio_choice_bool = False
@@ -387,6 +391,68 @@ def el_ratio_calc_fkt(Inputs, df):
                                                                + (area_2[i] / el_2_factor.loc[i, 1]))
 
     return ratio_tot, ratio_perc, element_1, element_2
+
+
+def el_ratio_3_el_calc_fkt(Inputs, df):
+    """
+    this function calculates the ratio between 3 chosen elements (1 over 2) taking the area_tot of the first spin-orbit
+    splitting one can choose an element from the list written in the ratio-calc.yaml file. then  it takes the needed
+    parameters from it.
+    If one has different sweeps for different measurement one can put it into a file and this will be called then.
+    it then calc the ratio and percentage ratio of the chosen element
+    """
+    el_list = Inputs["el_list"]
+    print("The following calculations will be done with el1/(el2+el3)")
+    element_1 = int(input("please enter the nr of the 1st element according to " + str(el_list) +
+                          " in the type of [0,1,2...]"))
+    element_2 = int(input("please enter the nr of the 2nd element according to " + str(el_list) +
+                          " in the type of [0,1,2...]"))
+    element_3 = int(input("please enter the nr of the 3rd element according to " + str(el_list) +
+                          " in the type of [0,1,2...]"))
+    el_chosen_1 = el_list[element_1]
+    el_chosen_2 = el_list[element_2]
+    el_chosen_3 = el_list[element_3]
+    area_1 = df[el_list[element_1]][1]
+    area_2 = df[el_list[element_2]][1]
+    area_3 = df[el_list[element_3]][1]
+
+    # check if there is a list of sweeps, if yes load it, if not create a df with the static sweep written into it
+    el_1_sweep = if_sweep_list_fkt(Inputs, area_1, el_chosen_1)
+    el_2_sweep = if_sweep_list_fkt(Inputs, area_2, el_chosen_2)
+    el_3_sweep = if_sweep_list_fkt(Inputs, area_3, el_chosen_3)
+    el_1_IMFP = if_IMFP_list_fkt(Inputs, area_1, el_chosen_1, 0)
+    el_2_IMFP = if_IMFP_list_fkt(Inputs, area_2, el_chosen_2, 0)
+    el_3_IMFP = if_IMFP_list_fkt(Inputs, area_3, el_chosen_3, 0)
+
+    el_1_factor = pd.DataFrame(data=np.zeros((len(area_1), 2)))
+    for i in range(len(area_1)):
+        el_1_factor.loc[i, 0] = "S" + str(i)
+        el_1_factor.loc[i, 1] = (Inputs[str(el_chosen_1) + "_sigma"][0] * Inputs[str(el_chosen_1) + "_TF"] *
+                   el_1_IMFP[1][0] * el_1_sweep[1][i])
+
+    el_2_factor = pd.DataFrame(data=np.zeros((len(area_2), 2)))
+    for i in range(len(area_1)):
+        el_2_factor.loc[i, 0] = "S" + str(i)
+        el_2_factor.loc[i, 1] = (Inputs[str(el_chosen_2) + "_sigma"][0] * Inputs[str(el_chosen_2) + "_TF"] *
+                   el_2_IMFP[1][0] * el_2_sweep[1][i])
+
+    el_3_factor = pd.DataFrame(data=np.zeros((len(area_3), 2)))
+    for i in range(len(area_1)):
+        el_3_factor.loc[i, 0] = "S" + str(i)
+        el_3_factor.loc[i, 1] = (Inputs[str(el_chosen_3) + "_sigma"][0] * Inputs[str(el_chosen_3) + "_TF"] *
+                   el_3_IMFP[1][0] * el_3_sweep[1][i])
+
+
+    ratio_tot = [0]*len(area_2)
+    ratio_perc = [0]*len(area_2)
+    for i in range(len(area_1)):
+        ratio_tot[i] = (area_1[i] / el_1_factor.loc[i, 1]) / ((area_2[i] / el_2_factor.loc[i, 1])
+                                                              + (area_3[i] / el_3_factor.loc[i, 1]))
+        ratio_perc[i] = (area_1[i] / el_1_factor.loc[i, 1]) / ((area_1[i] / el_1_factor.loc[i, 1])
+                                                               + (area_2[i] / el_2_factor.loc[i, 1])
+                                                               + (area_3[i] / el_3_factor.loc[i, 1]))
+
+    return ratio_tot, ratio_perc, element_1, element_2, element_3
 
 
 def el_gradient_ratio_calc_fkt(Inputs, df):
