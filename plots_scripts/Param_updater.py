@@ -32,6 +32,12 @@ def shirley_param_calc(pars, d, number_of_spectra, number_of_peaks):
         deltas = (yraw[len(yraw) - 1] - yraw[0])
         pars.add(f'p{i}_0_low', value=yraw[0])
         for idx in range(int(number_of_peaks)):
+            if idx == 0:
+                areas = f'p{i}_{idx}_amplitude'
+            else:
+                areas = areas + f' + p{i}_{idx}_amplitude'
+        pars.add(f'p{i}_0_low', value=yraw[0])
+        for idx in range(int(number_of_peaks)):
             #pars.add(f'p{i}_{idx}_delta', value=deltas / int(number_of_peaks), min=0)
             pars.add(f'p{i}_{idx}_delta', expr=f'{deltas} * (p{i}_{idx}_amplitude / ({areas}))', min=0)
             if idx > 0:
