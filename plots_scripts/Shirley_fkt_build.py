@@ -92,8 +92,8 @@ def peak_model_build_main_fkt(d, Inputs, element_number):
         peak_type == "Lorentz"
         peak_func = lmfit.models.LorentzianModel
 
-    # if peak_type.lower() == ???:                                           TODO: include more peak types
-    #    peak_func = lmfit.models.???Model
+    if peak_type.lower() == "doniach sunjic":                                          # TODO: include more peak types
+        peak_func = lmfit.models.DoniacModel
 
     mod_d = {}
     for idx in range(int(number_of_peaks)):
