@@ -159,7 +159,6 @@ def writing_ratio_to_file(Inputs, ratio_tot, ratio_perc, el_nr_1, el_nr_2=None, 
     el_list = Inputs["el_list"]
     el_path = el_list[el_nr_1] + "_file_path"
     path = Inputs[el_path] + "Ratio_results_" + str(el_list[el_nr_1]) + ".txt"
-    label_list = Inputs[el_list[el_nr_1] + "_label_list"]
 
     file = open(path, "a")
     if el_nr_2 is not None:

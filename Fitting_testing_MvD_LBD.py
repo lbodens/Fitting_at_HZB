@@ -24,7 +24,7 @@ d, number_of_spectra = df_creator_main_fkt(Inputs)
 # just to plot once for an overview
 # plot_1st_spectra_for_overview(d)
 
-# building the Models (peak + shirley) and save it as df. The 0 is there, since we are using the Input_fit.file. with
+# building the Models (peak + shirley) and save it as df. The 0 is there, since we areusing the Input_fit.file. with
 # the ana file, the number will be changed there
 mod_d, number_of_peaks, peak_func = peak_model_build_main_fkt(d, Inputs, 0)
 
